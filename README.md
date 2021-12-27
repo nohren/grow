@@ -1,8 +1,8 @@
 # Project Premise
-The goal is to grow 1% better at a habit each day and 37x better each year as skill levels compound. All the action happens at 32 degrees. 💻 🥽 🌄
+Automating your life via your neurons. The goal is to grow 1% better at a habit each day and 37x better each year as skill levels compound. All the action happens at 32 degrees. 💻 🥽 🌄
 
 
-* The idea is to use this as a way of tracking your current system overtime.  Seeing what grows and what shrinks. This is a visual snapshot of who you are right now and your systemic efforts.  You rise rise and fall to the level of your systems, not daily acheivement as that is only momentary. Focus on doing the thing instead of finishing the thing to develop the habit.  This is automating your life via your neurons.
+* The idea is to use this as a way of tracking your current habits.  Seeing what grows and what shrinks. This is a visual snapshot in time of who you are right now and the system that got you here.  According to the atomic habit, a person rises and falls to the level of their systems. Daily acheivements are momentary. More focus on doing the thing instead of finishing the thing to develop the habit.  This is automating your success via your neurons.
 # With Three js
 
 This example uses:
