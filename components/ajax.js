@@ -1,5 +1,5 @@
 import axios from "axios";
-const server = 'api';
+const server = '/api';
 //CRUD - create, read, update, delete
 
 const createHabit = async (habit, cb) => {
