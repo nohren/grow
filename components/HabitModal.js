@@ -13,7 +13,7 @@ export default function HabitModal(props) {
     //also why useEffect is key here.  This is for after mount refreshing state whenever a prop changes.
     const [habit, setHabit] = useState({ id: '', habit: '', treemoji: '', path: '', dailyComplete: false, scale: 0.2, rate: 0.001, frequency: {}, reps: 0, startDate: new Date(), description: '' });
     const saveFlag = useRef(false);
-    
+
     //why is the habit in app state changing?  I just want it to change here in this local state.  It's changing the app level state
     // bc {...obj} creates a shallow copy.  Anything more than 1 level deep retains its references to objects elsewhere
 
@@ -21,21 +21,21 @@ export default function HabitModal(props) {
 
     //useeffect is side effect that runs after a first render.  Associate useEffect with the aftermath of a render process.
     useEffect(() => {
-      //something here sets state for this pointing towards the prop object passed in
-      //bc {...obj} creates a shallow copy.
-      //purpose of void effect to change state to higher level app state
-      //only trigger this void effect when we open and close the modal 
-      if (props.show) {
-        let deepCopy = JSON.parse(JSON.stringify(props.modalhabit));
-        deepCopy.startDate = new Date(deepCopy.startDate);
-        setHabit(deepCopy);
-      }
+        //something here sets state for this pointing towards the prop object passed in
+        //bc {...obj} creates a shallow copy.
+        //purpose of void effect to change state to higher level app state
+        //only trigger this void effect when we open and close the modal 
+        if (props.show) {
+            let deepCopy = JSON.parse(JSON.stringify(props.modalhabit));
+            deepCopy.startDate = new Date(deepCopy.startDate);
+            setHabit(deepCopy);
+        }
     }, [props.show])
 
     const handleClick = (e) => {
-      let key = e.target.title;
-      let className = e.target.className;
-      addRemoveFrequency(key, className);
+        let key = e.target.title;
+        let className = e.target.className;
+        addRemoveFrequency(key, className);
     }
 
     const addRemoveFrequency = (key, className) => {
@@ -43,16 +43,16 @@ export default function HabitModal(props) {
         let deepCopy = JSON.parse(JSON.stringify(habit));
         deepCopy.startDate = new Date(deepCopy.startDate);
         if (className === 'frequencyBoxHighlighted col') {
-          delete deepCopy.frequency[key];
-        } else if (className === 'frequencyBox col') { 
+            delete deepCopy.frequency[key];
+        } else if (className === 'frequencyBox col') {
             deepCopy.frequency[key] = true;
         }
         setHabit(deepCopy);
     };
-    
+
     const handleChange = (e) => {
-      //shalow clones it and that is ok for this use.
-      setHabit({...habit, [e.target.name]: e.target.value});
+        //shalow clones it and that is ok for this use.
+        setHabit({ ...habit, [e.target.name]: e.target.value });
     };
 
     const handleSave = () => {
@@ -61,32 +61,44 @@ export default function HabitModal(props) {
             if (err) {
                 console.log(err);
             } else {
-              props.readrender();
-              saveFlag.current = true;
+                props.readrender();
+                saveFlag.current = true;
             }
         });
     }
     useEffect(() => {
-      if (saveFlag.current) {
-          props.onHide();
-          saveFlag.current = false;
-      }
-      //javascript is unable to determine obj equality?
+        if (saveFlag.current) {
+            props.onHide();
+            saveFlag.current = false;
+        }
+        //javascript is unable to determine obj equality?
     }, [props.modalhabit])
-  
+
     //react bootstrap component cannot accept unknown props, so we pull it out of the stream before sending the rest to the Modal
     //component
-    const {addremove, changehabit, ...others} = props;
+    const { addremove, changehabit, ...others } = props;
+
+    const deleteHabit = () => {
+        props.onHide();
+        ajax.deleteHabit(habit.id, (err, res) => {
+            if (err) {
+              console.log(err);
+            } else {
+                console.log('success');
+                props.readrender();
+            }
+        })
+      };
 
 
     return (
         <Modal {...others} aria-labelledby="contained-modal-title-vcenter" dialogClassName="">
             <Modal.Header closeButton>
                 <Modal.Title id="contained-modal-title-vcenter">
-                    <input 
-                      name={'habit'}
-                      value={habit.habit}
-                      onChange={handleChange}
+                    <input
+                        name={'habit'}
+                        value={habit.habit}
+                        onChange={handleChange}
                     />
                 </Modal.Title>
             </Modal.Header>
@@ -122,7 +134,10 @@ export default function HabitModal(props) {
                 </div>
             </div>
 
-            <Modal.Footer>
+            <Modal.Footer className={"override-modal-footer"}>
+                <Button variant="danger" onClick={deleteHabit}>
+                    Delete
+                </Button>
                 <Button variant="primary" onClick={handleSave}>Save</Button>
             </Modal.Footer>
         </Modal>

@@ -95,6 +95,8 @@ export default function App() {
   const openModal = (e) => {
     setModalHabitKey(e.target.title);
     setModalShow(true);
+    //this also needs to change color of specific tree by id
+    
   };
   const closeModal = () => {
     setModalShow(false);
@@ -142,13 +144,12 @@ export default function App() {
         uncheck={uncheck}
       />
       <CreateModal show={createModalShow} handleClose={closeCreateModal} addHabit={handleAddHabit}/>
-      <ContextModal show={contextMenuShow} readrender={getHabitsAndSet} handleClose={closeDeleteModal} modalhabit={habits[modalHabitKey] ? habits[modalHabitKey] : habitDefault['default']} deletehabit={handleDeleteHabit} />
       <div className="habitsContainer">
         <Button onClick={openCreateModal} variant="primary">Create</Button>{' '}
         {Object.values(habits).map((e) => (
            Object.values(habits).length === 0 || e.path === '' ? null :
             <div className="habit" key={e.id} >
-              <span title={e.id} onClick={openModal} onContextMenu={openDeleteModal} style={{ marginRight: '15px' }}>
+              <span title={e.id} onClick={openModal} style={{ marginRight: '15px' }}>
                 {e.habit}{' '}
                 {e.treemoji}
               </span>

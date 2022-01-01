@@ -8,6 +8,7 @@ import { useGLTF } from '@react-three/drei'
 const Cactus = forwardRef((props, ref) => {
   const group = useRef()
   const { nodes, materials } = useGLTF('/Cactus.glb')
+
   return (
     <group 
       ref={ref} 
