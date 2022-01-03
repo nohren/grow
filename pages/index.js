@@ -24,7 +24,7 @@ export default function App() {
   const [modalHabitKey, setModalHabitKey] = useState('default');
   const [contextMenuShow, setContextMenuShow] = useState(false);
   const [createModalShow, setCreateModalShow] = useState(false);
-  const [habitDefault, setHabitDefault] = useState({'default': { id: '', habit: '', treemoji: '', path: '', dailyComplete: false, scale: 0.2, rate: 0.001, frequency: {}, reps: 0, startDate: new Date(), description: '' }})
+  const [habitDefault, setHabitDefault] = useState({'default': { id: '', habit: '', treemoji: '', path: '', dailyComplete: false, scale: 0.2, rate: 0.001, frequency: {}, reps: 0, startDate: new Date(), description: '', dateLastCompleted: new Date()}})
  
   //refs - state that does not automatically trigger a re-render
   //array of references to input DOM nodes, so we can enable and disable them 
@@ -32,9 +32,16 @@ export default function App() {
   const clickedID = useRef('');
   const checkBoxClicked = useRef({});
   useEffect(() => {
-    //events
+    //entry to the app
+
+   //register events
    checkBoxClicked.current = new CustomEvent('checkBoxClicked', {detail: clickedID}); 
-   console.log(checkBoxClicked)
+   
+   //get habits and calculate, and uncheck habit.dailyComplete's for those no longer complete.
+
+   //update db
+
+   //get habits and set
    getHabitsAndSet();
  }, [])
 
@@ -45,24 +52,22 @@ export default function App() {
     let habitCopy = { ...habits };
     habitCopy[key][prop] = value;
     //setting habits in state prior to growing
+    console.log("from function: ", habitCopy)
     setHabits(habitCopy);
   };
 
-  const handleDeleteHabit = (key) => {
-    let habitCopy = { ...habits };
-    delete habitCopy[key];
-    setHabits(habitCopy);
-    console.log(habitCopy)
-  };
 
   const handleOnCheck = (e) => {
+    // console.log("State of dailycomplete: ", habits[clickedID.current].dailyComplete)
     clickedID.current = e.target.name;
+    console.log('invoke')
     window.dispatchEvent(checkBoxClicked.current);
     let key = e.target.name;
     let prop1 = 'dailyComplete';
     let value1 = e.target.checked;
     let prop2 = 'reps';
     let value2 = habits[e.target.name][prop2] + 1;
+    //console.log("checked value: ", value1)
     handleChangeHabit(key, prop1, value1);
     handleChangeHabit(key, prop2, value2);
     e.target.disabled = false; //make disabled in actual application
@@ -76,6 +81,8 @@ export default function App() {
       habitCopy[key].dailyComplete = false;
     }
     setHabits(habitCopy);
+
+    //uncheck all habits
     for (let i = 0; i < inputs.current.length; i++) {
       inputs.current[i].disabled = false;
     }
@@ -153,7 +160,9 @@ export default function App() {
                 {e.habit}{' '}
                 {e.treemoji}
               </span>
-              <input ref={(input) => {
+              <input ref={
+                //anonymous function pushing this input DOM node to the ref array
+                (input) => {
                 if (input !== null && inputs.current.length < Object.keys(habits).length) inputs.current.push(input)
               }
               } className="checkbox" type="checkbox" onChange={handleOnCheck} name={e.id} checked={e.dailyComplete} />

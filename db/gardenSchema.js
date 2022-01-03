@@ -13,7 +13,8 @@ const habitSchema = mongoose.Schema({
     },
     description: String,
     reps: Number,
-    startDate: Date
+    startDate: Date,
+    dateLastCompleted: Date
 })
 //treemoji, path, scale, rate
 const gfxSchema = mongoose.Schema({

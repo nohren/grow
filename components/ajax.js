@@ -4,7 +4,7 @@ const server = '/api';
 
 const createHabit = async (habit, cb) => {
   try {
-    const res = await axios.post(server + '/habits', habit) 
+    const res = await axios.post(server + '/habit', habit) 
     cb(res);
   }
   catch(e){
@@ -18,6 +18,7 @@ const getHabits = async (cb) => {
       let array = Object.keys(res.data)
       for (let key of array) {
         res.data[key].startDate = new Date(res.data[key].startDate);
+        res.data[key].dateLastCompleted = new Date(res.data[key].dateLastCompleted);
       }
       cb(res)
     }

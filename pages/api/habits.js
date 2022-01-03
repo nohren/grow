@@ -18,24 +18,6 @@ export default async (req, res) => {
        res.send(data);
        resolve();
      })
-   } else if (req.method === 'POST'){
-     query.getGfx((gfxData) => {
-       query.getIndex((data) => {
-         let i = data.index;
-         const gfxInstance = gfxData[i];
-         
-         //increment index or reset
-         if (i >= gfxData.length - 1) {
-           query.updateIndex(0);
-         } else {
-           query.updateIndex(i + 1);
-         }
-         query.insertHabit(req.body, gfxInstance, (result) => {
-           res.send('Added to db');
-           resolve();
-         });
-       })
-     });
-   }
+   } 
   })
 }

@@ -12,8 +12,8 @@ export default function CreateModal({ show, handleClose, addHabit }) {
     //1. Treemoji, path, scale and rate are subjective to the individual .gltf file, queue class for gltf's in O(1) time
 
     //state for a habit
-    const [habit, setHabit] = useState({ habit: '', dailyComplete: false, frequency: {}, reps: 0, startDate: new Date(), description: '' });
-    const [defaultHabit, setDefaultHabit] = useState({ habit: '', dailyComplete: false, frequency: {}, reps: 0, startDate: new Date(), description: '' })
+    const [habit, setHabit] = useState({ habit: '', dailyComplete: false, frequency: {}, reps: 0, startDate: new Date(), description: '', dateLastCompleted: new Date() });
+    const [defaultHabit, setDefaultHabit] = useState({ habit: '', dailyComplete: false, frequency: {}, reps: 0, startDate: new Date(), description: '', dateLastCompleted: new Date() })
     
     
     //function for appending the habit into parent habits state

@@ -20,45 +20,55 @@ export default function Tree({ getHabitsAndSet, position, scale, habit }) {
   //const gltf = useLoader(GLTFLoader, treePath)
   //console.log(gltf)
   const growthFactor = 1.3;
-
+  
   const dailyCompleteRef = useRef(0);
   const tree = useRef();
   const grow = useRef();
   const growthTarget = useRef();
-  const previousColor = useRef();
+  //for the function encapsulated in the listener
+  const scaleRef = useRef(habit.scale);
+  
+  
   //const [scale, setScale] = useState(0.2);
   //const [grow, setGrow] = useState(false);
   const [shrink, setShrink] = useState(false);
   const [rate, setRate] = useState(0.01);
-
-  //scale => tree ref DOM, only working with tree ref DOM
-  useEffect(() => {
-    //check the db when we want to shrink.  can delete all this.
-    dailyCompleteRef.current = habit.dailyComplete;
-  }, [habit.dailyComplete])
-
+  
   useEffect(() => {
     //tree state adjusted for GLTF object units eccentricityy
     // setScale(dbScale);
     // setRate(dbRate);
-
+    
     const cleanup = () => {
       // todo post scale to the db
     }
+    //any state or props accessed from a function attached to a listener, will be stale.  Need to use a ref. This is because the listener belongs ot the initial render.
     window.addEventListener('dayClosed', handleDayClosed)
     window.addEventListener('beforeunload', cleanup);
     window.addEventListener("checkBoxClicked", handleClickedCheck)
-
+    
     return () => {
       window.removeEventListener('beforeunload', cleanup);
       window.removeEventListener('dayClosed', handleDayClosed)
       window.removeEventListener('checkBoxClicked', handleClickedCheck);
     }
   }, [])
+  
+  useEffect(() => {
+    console.log("habits changed", habit.dailyComplete)
+    scaleRef.current = habit.scale;
+    dailyCompleteRef.current = habit.dailyComplete;
+  }, [habit])
 
   const handleClickedCheck = (e) => {
-    if (e.detail.current === habit.id && habit.dailyComplete === false) {
-      setTimeout(() => { handleGrowth(); }, 500);
+    //if this clicked habit matches this tree components habit and it hasn't been clicked before.  Grow it.
+    //
+    //think of react components code affecting all the instances of the component on the DOM.  
+    //
+    console.log(dailyCompleteRef.current)
+    if (e.detail.current === habit.id && dailyCompleteRef.current === false) {
+      console.log('growing')
+      handleGrowth();
     }
   };
 
@@ -80,16 +90,16 @@ export default function Tree({ getHabitsAndSet, position, scale, habit }) {
     tree.current.scale.y += habit.rate;
     tree.current.scale.z += habit.rate;
     console.log(tree.current.scale.x + " " + growthTarget.current)
-    //the rerender here fucks with the animation
+
     if (tree.current.scale.x >= growthTarget.current) {
       console.log('stopping growth at: ' + tree.current.scale.x)
-      grow.current = false; //setstate triggers a render, which passes the wrong value.  
+      grow.current = false; 
       setTimeout(() => {
         console.log("setting scale in set timeout to: " + tree.current.scale.x)
-        ajax.updateHabit({ ...habit, scale: tree.current.scale.x }, (result) => {
-          if (result) getHabitsAndSet();
+        ajax.updateHabit({ ...habit, scale: tree.current.scale.x }, (err, response) => {
+          if (response) getHabitsAndSet();
         })
-      }, 3000)
+      }, 1000)
     }
   };
   let shrinkInFrames = () => {
@@ -99,8 +109,7 @@ export default function Tree({ getHabitsAndSet, position, scale, habit }) {
   };
 
   const handleGrowth = () => {
-
-    growthTarget.current = habit.scale * growthFactor;
+    growthTarget.current = scaleRef.current * growthFactor;
     grow.current = true;
   };
 
@@ -113,17 +122,17 @@ export default function Tree({ getHabitsAndSet, position, scale, habit }) {
     }, 1000);
   }
 
-  const highlightHabit = (e) => {
-    console.log(tree.current)
-    //its too complex to change the mesh of an instance as that mesh seems to have multiple parent objects
+  // const highlightHabit = (e) => {
+  //   console.log(tree.current)
+  //   //its too complex to change the mesh of an instance as that mesh seems to have multiple parent objects
 
 
-    //get ref and change alternate color
-    previousColor = tree.current.children[0].material.color;
+  //   //get ref and change alternate color
+  //   previousColor = tree.current.children[0].material.color;
 
 
-    //open menu for respective habit
-  }
+  //   //open menu for respective habit
+  // }
 
   const Model = forwardRef((props, ref) => {
     //based on tree path return the correct model
@@ -185,7 +194,7 @@ export default function Tree({ getHabitsAndSet, position, scale, habit }) {
         ref={tree}
         scale={scale}
         position={position}
-        onPointerDown={highlightHabit}
+        // onPointerDown={highlightHabit}
       />
 
   )

@@ -2,6 +2,7 @@ const { Habit, Gfx, GfxIndex } = require('./gardenSchema')
 //const db = require('./database')
 
 const insertHabit = async (habit, gfx, cb) => {
+  console.log(habit)
   try {
     //mongoose map convert number to string key
     const instance = new Habit({
@@ -14,7 +15,8 @@ const insertHabit = async (habit, gfx, cb) => {
       frequency: habit.frequency,
       description: habit.description,
       reps: habit.reps,
-      startDate: habit.startDate
+      startDate: habit.startDate,
+      dateLastCompleted: habit.dateLastCompleted
     });
     const success = await instance.save();
     cb(success)
@@ -54,7 +56,8 @@ const getHabits = async (cb) => {
         frequency: convert,
         description: e.description,
         reps: e.reps,
-        startDate: e.startDate
+        startDate: e.startDate,
+        dateLastCompleted: e.dateLastCompleted
       }
       habits[e.id] = currentHabit;
     }
