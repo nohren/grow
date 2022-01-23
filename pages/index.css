@@ -25,12 +25,16 @@ body {
 
 .habit {
   margin-top: 10%;
-  font-weight: 500;
+  font-weight: 800;
+  color: hotpink;
   cursor: pointer;
+ 
 }
 
 .checkbox {
   cursor: pointer;
+  height: 29px;
+  width: 29px;
 }
 
 .frequencyFlex {
@@ -61,3 +65,7 @@ body {
     justify-content: space-between !important;
 }
 
+.labels {
+  margin-right: 15px;
+  font-size: 1.5em;
+}
