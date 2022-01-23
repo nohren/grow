@@ -4,10 +4,10 @@ export const deepCopy = (collection) => {
     if (typeof str !== 'string') return false;
     if (str.length < 24 || str.length > 27) return false;
 
-    let dashCount = 0;
-    let colonCount = 0;
-    let periodCount = 0;
-    let zCount = 0;
+    let dashCount = 0,
+      colonCount = 0,
+      periodCount = 0,
+      zCount = 0;
 
     for (let e of str) {
       if (e === '-') {
