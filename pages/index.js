@@ -9,7 +9,7 @@ import HabitModal from '../components/HabitModal.jsx';
 import CreateModal from '../components/create-modal.jsx';
 import TimeKeeper from '../components/utility_components/Time';
 import Tree from '../components/Tree.jsx';
-import { getHabits } from '../helpers/ajax';
+import { getHabits, updateHabit } from '../helpers/ajax';
 import { deepCopy } from '../helpers/deepCopy';
 import { dateThreshold } from '../helpers/dateFunctions';
 extend({ OrbitControls });
@@ -22,6 +22,7 @@ export default function App() {
   const [modalHabitKey, setModalHabitKey] = useState('default');
   const [contextMenuShow, setContextMenuShow] = useState(false);
   const [createModalShow, setCreateModalShow] = useState(false);
+  const [spacing, setSpacing] = useState(1);
   const [habitDefault, setHabitDefault] = useState({
     default: {
       id: '',
@@ -46,6 +47,7 @@ export default function App() {
   const violatorID = useRef({});
   const checkBoxClicked = useRef({});
   const shrinkTree = useRef({});
+  const firstDataLook = useRef(false);
 
   useEffect(() => {
     //Using events in react.  Values passed into an event invocation must be of type React.MututableRefObject<T>, a ref object, to defeat the stale state problem.  On the listening side function, refs must be used to defeat the stale state problem as well.
@@ -68,7 +70,8 @@ export default function App() {
   //check to see if there are habits, dispatch to Tree component the offenders and id's of those not yet completed in required time.
   useEffect(() => {
     const trees = Object.values(habits);
-    if (trees.length > 0) {
+    if (trees.length > 0 && !firstDataLook.current) {
+      console.log('check for shrinkage on app load');
       const violators = trees.filter((tree) => {
         const threshold = dateThreshold(tree.dateLastCompleted, 1);
         return Date.now() > threshold;
@@ -77,6 +80,7 @@ export default function App() {
         violatorID.current = tree.id;
         window.dispatchEvent(shrinkTree.current);
       });
+      firstDataLook.current = true;
     }
   }, [habits]);
 
@@ -90,27 +94,25 @@ export default function App() {
     console.log('from function: ', habitCopy);
     setHabits(habitCopy);
   };
-
-  //when clicked, e.target.checked will give the value it is now supposed to be.
-  // if it was checked, it will return false for unchecked
-  // if unchecked, it will return false for checked.
-  // this is a controlled state with habit.dailyComplete
+  //console.log('comparing and rendering bc of a setState');
   const handleOnCheck = (e) => {
     const habit = deepCopy(habits[e.target.name]);
-    console.log(habit);
+    updateHabit(
+      { ...habit, dailyComplete: e.target.checked },
+      (err, result) => {
+        if (err) console.error(err);
+        else getHabitsAndSet();
+      }
+    );
 
-    // clickedID.current = e.target.name;
-    // checkedFlag.current = !e.target.checked;
-    // window.dispatchEvent(checkBoxClicked.current);
-    // let key = e.target.name;
-    // let prop1 = 'dailyComplete';
-    // let value1 = e.target.checked;
-    // let prop2 = 'reps';
-    // let value2 = habits[e.target.name][prop2] + 1;
-    // //console.log("checked value: ", value1)
-    // handleChangeHabit(key, prop1, value1);
-    // handleChangeHabit(key, prop2, value2);
-    // e.target.disabled = false; //make disabled in actual application
+    //in case I wanted to
+    // this is a controlled state with habit.dailyComplete
+    // setHabits({
+    //   ...habits,
+    //   [e.target.name]: { ...habit, dailyComplete: e.target.checked },
+    // });
+
+    // e.target.disabled = false; //i believe something with ref is related to this
   };
 
   const uncheck = () => {
@@ -127,6 +129,8 @@ export default function App() {
     //todo post to db
   };
 
+  //need to allow time for the rest of the habits to update the db before pulling from the db and
+  //resetting the changes in the other ones.
   const getHabitsAndSet = () => {
     getHabits((results) => {
       console.log('data from db pull', results.data);
@@ -143,21 +147,19 @@ export default function App() {
     setModalShow(false);
   };
 
-  const openDeleteModal = (e) => {
-    setModalHabitKey(e.target.title);
-    setContextMenuShow(true);
-    e.preventDefault();
-  };
-  const closeDeleteModal = () => {
-    //todo delete habit in db
-    setContextMenuShow(false);
-  };
-
   const openCreateModal = () => {
     setCreateModalShow(true);
   };
   const closeCreateModal = () => {
     setCreateModalShow(false);
+  };
+
+  const handleSpacing = (e) => {
+    if (e.target.name === 'plus') {
+      setSpacing(spacing + 1);
+    } else if (e.target.name === 'minus') {
+      setSpacing(spacing - 1);
+    }
   };
 
   //modulo and division is better thoguht of as how do we get from bottom number to top number using multiples of bottom number.  i.e 6/4 = 1.5 or one 4 + 2
@@ -166,18 +168,15 @@ export default function App() {
   //commonality is multiple of 4,i.e 4 is remainder 0 so +, 5 is remainder 1 so +, 6 remainder 2 -, 7 remainder 3 -
   //i % 4, 0 && 1 +, 2 && 3 -
   //how do we know to double the factor, this is acheived by math.ceiling, if i is a factor of 4, then increment i to use
-  let setXpos = (i) => {
-    let factor = 1;
+  let setXpos = (i, factor = 1) => {
     factor *= Math.ceil((i % 4 === 0 ? i + 1 : i) / 4);
     return i % 4 === 0 || i % 4 === 1 ? factor : -1 * factor;
   };
-  let setZpos = (i) => {
-    let factor = 1;
+  let setZpos = (i, factor = 1) => {
     factor *= Math.ceil((i % 4 === 0 ? i + 1 : i) / 4);
     return i % 4 === 1 || i % 4 === 2 ? factor : -1 * factor;
   };
 
-  //rendering HTML with javascript embedded (JSX).  Biggest pitfall is trying to render some property of an undefined object. Have a fall back render in case the info isn't as expected.  Actually better to handle this in the child component as a conditional render, than carrying a new piece of state just for this, also simplifies this greatly
   return (
     <>
       {/* <TimeKeeper uncheck={uncheck} /> */}
@@ -217,6 +216,19 @@ export default function App() {
           )
         )}
       </div>
+      <div className="spacing-container">
+        <Button
+          name="plus"
+          onClick={handleSpacing}
+          className="spacing-button"
+          variant="primary"
+        >
+          Size +
+        </Button>
+        <Button name="minus" onClick={handleSpacing} className="spacing-button">
+          Size -
+        </Button>
+      </div>
       <HabitModal
         show={modalShow}
         onHide={closeModal}
@@ -244,7 +256,7 @@ export default function App() {
               <Tree
                 key={e.id}
                 scale={[e.scale, e.scale, e.scale]}
-                position={[setXpos(i), -1, setZpos(i)]}
+                position={[setXpos(i, spacing), -1, setZpos(i, spacing)]}
                 habit={e}
                 getHabitsAndSet={getHabitsAndSet}
               />

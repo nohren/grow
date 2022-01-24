@@ -20,7 +20,7 @@ body {
 }
 
 .canvas-container {
- height: max-content;
+  height: max-content;
 }
 
 .habit {
@@ -28,7 +28,6 @@ body {
   font-weight: 800;
   color: hotpink;
   cursor: pointer;
- 
 }
 
 .checkbox {
@@ -62,10 +61,21 @@ body {
 }
 
 .override-modal-footer {
-    justify-content: space-between !important;
+  justify-content: space-between !important;
 }
 
 .labels {
   margin-right: 15px;
   font-size: 1.5em;
+}
+
+.spacing-container {
+  position: absolute;
+  top: 5%;
+  right: 5%;
+  z-index: 1;
+}
+
+.spacing-container .spacing-button {
+  margin: 0 10px;
 }
