@@ -1,196 +1,249 @@
-//React is a declarative framework, we don't say how, we just say what we want.
-//R3F - a declarative three.js framework with a library of JSX elements (looks like html) of three.js objects / classes. 
-//import './App.css';
-import { Canvas, useFrame, extend } from '@react-three/fiber'
-import React, { Suspense, useEffect, useRef, useState } from 'react'
-import Tree from '../components/Tree';
-import TimeKeeper from '../components/Time'
-import SkyComponent from '../components/SkyComponent'
-import HabitModal from '../components/HabitModal';
-import ContextModal from '../components/ContextModal'
-import CreateModal from '../components/CreateModal'
-import { Button } from 'react-bootstrap'
-import { Html } from "@react-three/drei";
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-import CameraControls from '../components/CameraControls'
-import ajax from '../components/ajax'
+import { Button } from 'react-bootstrap';
+import React, { Suspense, useEffect, useRef, useState } from 'react';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { Canvas, useFrame, extend } from '@react-three/fiber';
+import { Html } from '@react-three/drei';
+import SkyComponent from '../components/utility_components/SkyComponent';
+import CameraControls from '../components/utility_components/CameraControls';
+import HabitModal from '../components/HabitModal.jsx';
+import CreateModal from '../components/create-modal.jsx';
+import { timeKeeper } from '../components/utility_components/Time';
+import Tree from '../components/Tree.jsx';
+import { getHabits, updateHabit } from '../helpers/ajax';
+import { deepCopy } from '../helpers/deepCopy';
+import { shrinkTrees } from '../helpers/dateFunctions';
 extend({ OrbitControls });
 
 export default function App() {
-  //State - directly passed into components.  Want to change the components, change state.
-  //dummy data for frontend dev 
+  //When mutating state - dirtying state, the DOM will not do anything, react will appear as if its not working until you call setState. You will get weird console.logs that do not reflect in react. Always always create a fresh copy of state before mutating and setting.  This is good practice.
+
+  ////Using events in react.  Values passed into an event invocation must be of type React.MututableRefObject<T>, a ref object, to defeat the stale state problem.  On the listening side function, refs must be used to defeat the stale state problem as well.
+
   const [habits, setHabits] = useState({});
   const [modalShow, setModalShow] = useState(false);
   const [modalHabitKey, setModalHabitKey] = useState('default');
-  const [contextMenuShow, setContextMenuShow] = useState(false);
   const [createModalShow, setCreateModalShow] = useState(false);
-  const [habitDefault, setHabitDefault] = useState({'default': { id: '', habit: '', treemoji: '', path: '', dailyComplete: false, scale: 0.2, rate: 0.001, frequency: {}, reps: 0, startDate: new Date(), description: '', dateLastCompleted: new Date()}})
- 
-  //refs - state that does not automatically trigger a re-render
-  //array of references to input DOM nodes, so we can enable and disable them 
+  const [spacing, setSpacing] = useState(1);
+  const [compoundFactor, setGrowthFactor] = useState(5 * (1 / 100)); //10% for dev, make 1% later
+  const [habitDefault, setHabitDefault] = useState({
+    default: {
+      id: '',
+      habit: '',
+      treemoji: '',
+      path: '',
+      dailyComplete: false,
+      scale: 0.2,
+      rate: 0.001,
+      frequency: {},
+      reps: 0,
+      startDate: new Date(),
+      description: '',
+      dateLastCompleted: new Date(),
+    },
+  });
+
+  //refs - state that does not automatically trigger a re-render.  An array of references to input DOM nodes, so we can enable and disable them
   const inputs = useRef([]);
   const clickedID = useRef('');
+  const checkedFlag = useRef(false);
   const checkBoxClicked = useRef({});
+  const firstDataRender = useRef(false);
+  const habitsRef = useRef({});
+
+  //*** Testing */
+  //console.log('rendering index');
+
+  //takes place after first render **only**
   useEffect(() => {
-    //entry to the app
+    //console.log('initial mount'); //after first render and mount
+    getHabitsAndSet(); //causes the second render
+    const intervalTimer = timeKeeper(compoundFactor, habitsRef);
 
-   //register events
-   checkBoxClicked.current = new CustomEvent('checkBoxClicked', {detail: clickedID}); 
-   
-   //get habits and calculate, and uncheck habit.dailyComplete's for those no longer complete.
+    return () => clearInterval(intervalTimer);
+  }, []);
 
-   //update db
+  const getHabitsAndSet = () => {
+    getHabits((results) => {
+      console.log('data from db pull', results.data);
+      setHabits(results.data);
+    });
+  };
 
-   //get habits and set
-   getHabitsAndSet();
- }, [])
+  //takes place after second render **only**, our first look at data
+  useEffect(() => {
+    habitsRef.current = habits;
+    const trees = Object.values(habits);
+    if (trees.length > 0 && !firstDataRender.current) {
+      shrinkTrees(trees, compoundFactor);
+      firstDataRender.current = true;
+    }
+  }, [habits]);
 
   //methods
   const handleAddHabit = (habitObject) => setHabits(habitObject);
-  
-  const handleChangeHabit = (key, prop, value) => {
-    let habitCopy = { ...habits };
-    habitCopy[key][prop] = value;
-    //setting habits in state prior to growing
-    console.log("from function: ", habitCopy)
-    setHabits(habitCopy);
-  };
 
-
+  // const handleChangeHabit = (key, prop, value) => {
+  //   let habitCopy = { ...habits };
+  //   habitCopy[key][prop] = value;
+  //   //setting habits in state prior to growing
+  //   console.log('from function: ', habitCopy);
+  //   setHabits(habitCopy);
+  // };
+  //console.log('comparing and rendering bc of a setState');
   const handleOnCheck = (e) => {
-    // console.log("State of dailycomplete: ", habits[clickedID.current].dailyComplete)
-    clickedID.current = e.target.name;
-    console.log('invoke')
-    window.dispatchEvent(checkBoxClicked.current);
-    let key = e.target.name;
-    let prop1 = 'dailyComplete';
-    let value1 = e.target.checked;
-    let prop2 = 'reps';
-    let value2 = habits[e.target.name][prop2] + 1;
-    //console.log("checked value: ", value1)
-    handleChangeHabit(key, prop1, value1);
-    handleChangeHabit(key, prop2, value2);
-    e.target.disabled = false; //make disabled in actual application
+    const habit = deepCopy(habits[e.target.name]);
+    habit.dailyComplete = e.target.checked;
+    updateHabit(habit, (err, result) => {
+      if (err) {
+        console.error(err);
+      } else {
+        getHabitsAndSet();
+      }
+    });
 
-    //todo post to db
+    // e.target.disabled = true; //i believe something with ref is related to this
   };
 
-  const uncheck = () => {
-    let habitCopy = { ...habits };
-    for (let key in habitCopy) {
-      habitCopy[key].dailyComplete = false;
-    }
-    setHabits(habitCopy);
+  // const uncheck = () => {
+  //   let habitCopy = { ...habits };
+  //   for (let key in habitCopy) {
+  //     habitCopy[key].dailyComplete = false;
+  //   }
+  //   setHabits(habitCopy);
 
-    //uncheck all habits
-    for (let i = 0; i < inputs.current.length; i++) {
-      inputs.current[i].disabled = false;
-    }
-    //todo post to db
+  //   //uncheck all habits
+  //   for (let i = 0; i < inputs.current.length; i++) {
+  //     inputs.current[i].disabled = false;
+  //   }
+  //   //todo post to db
+  // };
 
-  };
-
-
-  const getHabitsAndSet = () => {
-    ajax.getHabits((habits) => {
-      console.log(habits.data)
-      setHabits(habits.data);
-    })
-  };
-
- 
   const openModal = (e) => {
     setModalHabitKey(e.target.title);
     setModalShow(true);
     //this also needs to change color of specific tree by id
-    
   };
   const closeModal = () => {
     setModalShow(false);
   };
 
-  const openDeleteModal = (e) => {
-    setModalHabitKey(e.target.title);
-    setContextMenuShow(true);
-    e.preventDefault();
-  };
-  const closeDeleteModal = () => {
-    //todo delete habit in db
-    setContextMenuShow(false);
-  };
-
   const openCreateModal = () => {
-     setCreateModalShow(true);
+    setCreateModalShow(true);
   };
   const closeCreateModal = () => {
     setCreateModalShow(false);
   };
 
+  const handleSpacing = (e) => {
+    if (e.target.name === 'plus') {
+      setSpacing(spacing + 1);
+    } else if (e.target.name === 'minus') {
+      setSpacing(spacing - 1);
+    }
+  };
+
   //modulo and division is better thoguht of as how do we get from bottom number to top number using multiples of bottom number.  i.e 6/4 = 1.5 or one 4 + 2
-  // 6%4 = 2 or 4*1 + 2.  
+  // 6%4 = 2 or 4*1 + 2.
   // 2/4 = 0.5 or 2%4 = 2 or 4 * 0 + 2
   //commonality is multiple of 4,i.e 4 is remainder 0 so +, 5 is remainder 1 so +, 6 remainder 2 -, 7 remainder 3 -
   //i % 4, 0 && 1 +, 2 && 3 -
-  //how do we know to double the factor, this is acheived by math.ceiling, if i is a factor of 4, then increment i to use 
-  let setXpos = (i) => {
-    let factor = 1;
-    factor *= Math.ceil((i % 4 === 0 ? i + 1: i) / 4);
-    return i % 4 === 0 || i % 4 === 1 ? factor: -1 * factor;
-  }
-  let setZpos = (i) => {
-    let factor = 1;
-    factor *= Math.ceil((i % 4 === 0 ? i + 1: i) / 4);
-    return i % 4 === 1 || i % 4 === 2 ? factor: -1 * factor;
-  }
-  
+  //how do we know to double the factor, this is acheived by math.ceiling, if i is a factor of 4, then increment i to use
+  let setXpos = (i, factor = 1) => {
+    factor *= Math.ceil((i % 4 === 0 ? i + 1 : i) / 4);
+    return i % 4 === 0 || i % 4 === 1 ? factor : -1 * factor;
+  };
+  let setZpos = (i, factor = 1) => {
+    factor *= Math.ceil((i % 4 === 0 ? i + 1 : i) / 4);
+    return i % 4 === 1 || i % 4 === 2 ? factor : -1 * factor;
+  };
 
-  //rendering HTML with javascript embedded (JSX).  Biggest pitfall is trying to render some property of an undefined object. Have a fall back render in case the info isn't as expected.
   return (
     <>
-       <TimeKeeper
-        uncheck={uncheck}
+      <CreateModal
+        show={createModalShow}
+        handleClose={closeCreateModal}
+        addHabit={handleAddHabit}
       />
-      <CreateModal show={createModalShow} handleClose={closeCreateModal} addHabit={handleAddHabit}/>
       <div className="habitsContainer">
-        <Button onClick={openCreateModal} variant="primary">Create</Button>{' '}
-        {Object.values(habits).map((e) => (
-           Object.values(habits).length === 0 || e.path === '' ? null :
-            <div className="habit" key={e.id} >
-              <span title={e.id} onClick={openModal} style={{ marginRight: '15px' }}>
-                {e.habit}{' '}
-                {e.treemoji}
-              </span>
-              <input ref={
-                //anonymous function pushing this input DOM node to the ref array
-                (input) => {
-                if (input !== null && inputs.current.length < Object.keys(habits).length) inputs.current.push(input)
-              }
-              } className="checkbox" type="checkbox" onChange={handleOnCheck} name={e.id} checked={e.dailyComplete} />
+        <Button onClick={openCreateModal} variant="primary">
+          Create
+        </Button>{' '}
+        {Object.values(habits).map((e) =>
+          Object.values(habits).length === 0 || e.path === '' ? null : (
+            <div className="habit" key={e.id}>
+              <div title={e.id} onClick={openModal} className="labels">
+                {e.habit} {e.treemoji}
+              </div>
+              <input
+                ref={
+                  //anonymous function pushing this input DOM node to the ref array for the purpose of disabling the checkbox
+                  (input) => {
+                    if (
+                      input !== null &&
+                      inputs.current.length < Object.keys(habits).length
+                    )
+                      inputs.current.push(input);
+                  }
+                }
+                className="checkbox"
+                type="checkbox"
+                onChange={handleOnCheck}
+                name={e.id}
+                checked={e.dailyComplete}
+              />
             </div>
-        ))}
+          )
+        )}
       </div>
-      <HabitModal show={modalShow} onHide={closeModal} readrender={getHabitsAndSet} modalhabit={habits[modalHabitKey] ? habits[modalHabitKey] : habitDefault['default']} />
+      <div className="spacing-container">
+        <Button
+          name="plus"
+          onClick={handleSpacing}
+          className="spacing-button"
+          variant="primary"
+        >
+          Size +
+        </Button>
+        <Button name="minus" onClick={handleSpacing} className="spacing-button">
+          Size -
+        </Button>
+      </div>
+      <HabitModal
+        show={modalShow}
+        onHide={closeModal}
+        readrender={getHabitsAndSet}
+        modalhabit={
+          habits[modalHabitKey]
+            ? habits[modalHabitKey]
+            : habitDefault['default']
+        }
+      />
       <Canvas className="canvas-container">
         <CameraControls />
         <ambientLight intensity={0.1} />
         <directionalLight color="white" position={[1, 1, 10]} />
-        <Suspense fallback={<Html center><h1>loading trees...</h1></Html>}>
+        <Suspense
+          fallback={
+            <Html center>
+              <h1>loading trees...</h1>
+            </Html>
+          }
+        >
           <SkyComponent />
-          {Object.values(habits).map((e, i) => (
-            Object.values(habits).length === 0 || e.path === '' ? null :
+          {Object.values(habits).map((e, i) =>
+            Object.values(habits).length === 0 || e.path === '' ? null : (
               <Tree
                 key={e.id}
                 scale={[e.scale, e.scale, e.scale]}
-                position={[setXpos(i), -1, setZpos(i)]}
+                position={[setXpos(i, spacing), -1, setZpos(i, spacing)]}
                 habit={e}
                 getHabitsAndSet={getHabitsAndSet}
+                compoundFactor={compoundFactor}
               />
-          ))}
+            )
+          )}
         </Suspense>
       </Canvas>
     </>
   );
 }
-
-
-
