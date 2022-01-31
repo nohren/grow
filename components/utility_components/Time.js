@@ -1,41 +1,49 @@
-import React, { useEffect, useRef } from 'react'
+import { shrinkTrees } from '../../helpers/dateFunctions';
 
+/*
+  Function adds a recurring event loop timer to the window object. Checks once per minute, 60 times per hour and 1440 times per day for midnight.
+  At midnight, all trees are checked for shrinkage and shrinked accordingly.  That is if the browser is open then.  Otherwise it is taken care of on browser load.  Using both methods in tandem will not conflict as they both update the dateLastCompleted date. Which they both go off of.
+  
+  For continuously running machines such as those in kiosk mode, this will be the relied upon method of shrinking habits.
+*/
 
-export default function Time({ uncheck }) {
-    //purpose is central place in app to count time based on frames
-    //will trigger a day changed event
-    const currentDate = useRef({});
-    const dayClosedEvent = useRef({});
-    
-    useEffect(() => {
-        dayClosedEvent.current = new Event('dayClosed');
-        //todo get the last seen time stamp from the db
-        currentDate.current = new Date();
-        let id = setInterval(() => {
-            let newDate = new Date();
-            if (newDate.getDate() > currentDate.current.getDate() || newDate.getMonth() > currentDate.current.getMonth() || newDate.getFullYear() > currentDate.current.getFullYear()) {
-                window.dispatchEvent(dayClosedEvent.current);
-                currentDate.current = newDate;
-                uncheck();
-            }
-        }, 1000 * 60)
-        return () => clearInterval(id);
-    }, [])
+export const timeKeeper = (compoundFactor, habits) => {
+  const interval = 1000;
 
+  //test in minutes
 
+  //create midnight date to check against
+  const timeToReference = createFutureDate();
 
-    // useFrame(() => {
-    //     //this is expensive for the GC - can calulate seconds to midnight on app load? then count instead of init the date object?
-    //     let frameDay = new Date().getDay();
-    //     if (frameDay > currentDay) {
-    //         //trigger event, subcribed trees will receive the event
-    //         window.dispatchEvent(dayClosedEvent);
-    //         setCurrentDay(frameDay);
-    //         uncheck();
-    //     }
-    // })
+  return setInterval(() => {
+    const now = new Date();
+    //console.log('Time Reference', timeToReference);
+    //console.log('curent time', now);
 
-    return (
-        <></>
-    )
-}
+    if (
+      now.getHours() === timeToReference.getHours() &&
+      now.getMinutes() === timeToReference.getMinutes()
+    ) {
+      //FireOff and reset dateCheck to next days midnight
+      const trees = Object.values(habits.current);
+      shrinkTrees(trees, compoundFactor);
+      timeToReference = createFutureDate(timeToReference, 1);
+    }
+  }, interval);
+};
+
+//given a date, creates a new date sometime in the future
+const createFutureDate = (
+  date = new Date(),
+  days = 0,
+  hours = 23,
+  minutes = 59,
+  seconds = 59
+) => {
+  const dateCopy = new Date(date.toString());
+  dateCopy.setDate(dateCopy.getDate() + days);
+  dateCopy.setHours(hours);
+  dateCopy.setMinutes(minutes);
+  dateCopy.setSeconds(seconds);
+  return dateCopy;
+};

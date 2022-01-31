@@ -11,64 +11,113 @@ import Cactus from './gltf_tree_instances/Cactus';
 import { updateHabit } from '../helpers/ajax';
 import { deepCopy } from '../helpers/deepCopy';
 
-export default function Tree({ getHabitsAndSet, position, scale, habit }) {
+export default function Tree({
+  getHabitsAndSet,
+  position,
+  scale,
+  habit,
+  compoundFactor,
+}) {
   //work around for event listener function.  Only subscribes at app start and function state is captured for reference but turns stale.
   //in order to have an up to date prop, we need to store the prop and its changing value in a ref where the function scope can capture it.
   //curious why the initial scope can refer to an updated ref, but not a prop?  I believe its because a prop is a value type and a
   //ref is an object, so we are copying the reference, ahhh that's why they call it a ref.  We got the address, not the value. which changes.
-
-  const growthFactor = 1.3;
+  const isMounted = useRef(false);
   const tree = useRef();
   const grow = useRef(false);
   const shrink = useRef(false);
   const growthTarget = useRef();
+  const shrinkTarget = useRef();
+  const passScalePropsFromDOM = useRef(false);
 
   useEffect(() => {
     //any state or props accessed from a function attached to a listener, will be stale.  Need to use a ref. This is because the listener belongs ot the initial render.
-    window.addEventListener('dayClosed', handleDayClosed);
-    //window.addEventListener('beforeunload', cleanup);
-    // window.addEventListener('checkBoxClicked', handleClickedCheck);
     window.addEventListener('shrink', handleShrink);
 
     return () => {
-      //window.removeEventListener('beforeunload', cleanup);
-      window.removeEventListener('dayClosed', handleDayClosed);
-      // window.removeEventListener('checkBoxClicked', handleClickedCheck);
       window.removeEventListener('shrink', handleShrink);
     };
   }, []);
 
+  useFrame(() => {
+    if (grow.current) growInFrames();
+    else if (shrink.current) shrinkInFrames();
+  });
+
+  // an abstract machine that can be in exactly one of a finite number of states at any given time. The FSM can change from one state to another in response to some inputs; the change from one state to another is called a transition. An FSM is defined by a list of its states, its initial state, and the inputs that trigger each transition
+
+  //creating my own custom state machine for 2 reasons.
+  //1. I want to avoid both growing and shrinking at the same time
+  //2. I want the tree to pass props as DOM scale until the db is updated. Then revert to state scale.This avoids the problem of another tree initiating a setstate with old db info, and resetting the scale of this tree for a moment of time before this tree can update the db and call setstate.
+
+  const mutateDOMStateMachine = (stateType) => {
+    switch (stateType) {
+      case 'grow':
+        //check to see if growing or shrinking, prevent state transition if so.
+        if (grow.current || shrink.current) return;
+
+        //grow
+        grow.current = true;
+        shrink.current = false;
+        passScalePropsFromDOM.current = true;
+        return;
+
+      case 'shrink':
+        //check to see if growing or shrinking, prevent state transition if so.
+        if (grow.current || shrink.current) return;
+        shrink.current = true;
+        grow.current = false;
+        passScalePropsFromDOM.current = true;
+        return;
+
+      case 'static-post-db-update':
+        grow.current = false;
+        shrink.current = false;
+        passScalePropsFromDOM.current = false;
+        return;
+
+      case 'static-pre-db-update':
+        grow.current = false;
+        shrink.current = false;
+        passScalePropsFromDOM.current = true;
+        return;
+    }
+  };
+
+  const handleShrink = (event) => {
+    console.log('from shrink event listener: ', event.detail);
+    if (habit.id === event.detail.id) {
+      shrinkTarget.current = event.detail.newScale;
+      mutateDOMStateMachine('shrink');
+    }
+  };
+
+  const handleGrowth = () => {
+    growthTarget.current = habit.scale * (1 + compoundFactor);
+    mutateDOMStateMachine('grow');
+  };
+
+  //console.log('rendering: ', habit);
+
+  //once tree is first rendered, we will go into this useEffect and grow the tree if the box is checked
+  //This is undesirable.  Instead we wait until after the first render.  This gives us a change to uncheck the box if it is checked and use it as designed.
   useEffect(() => {
-    if (habit.dailyComplete === true) {
+    if (habit.dailyComplete && isMounted.current) {
       handleGrowth();
     } else {
-      // setting a component false when unchecked is crucial.  If left true in db state, and if unchecked and false in local state, then this instances useEffect gateway is ready to recieve a true value, which will grow it.  Another trees growth will pass that in from the db.
-      //The take away is to always sync local state and db state.
-      // updateHabit(
-      //   {
-      //     ...deepCopy(habit),
-      //     dailyComplete: false,
-      //   },
-      //   (err, response) => {
-      //     if (response) getHabitsAndSet();
-      //   }
-      // );
+      isMounted.current = true;
     }
   }, [habit.dailyComplete]);
 
-  const handleGrowth = () => {
-    growthTarget.current = habit.scale * growthFactor;
-    grow.current = true;
-  };
-
   //always mutate the instance DOM in animation frames, don't use react set state functionality.
+  //when finished return promise to signify proccess is complete
   const growInFrames = () => {
     tree.current.scale.x += habit.rate;
     tree.current.scale.y += habit.rate;
     tree.current.scale.z += habit.rate;
 
     if (tree.current.scale.x >= growthTarget.current) {
-      grow.current = false;
+      mutateDOMStateMachine('static-pre-db-update');
       updateHabit(
         {
           ...deepCopy(habit),
@@ -78,35 +127,37 @@ export default function Tree({ getHabitsAndSet, position, scale, habit }) {
         },
         (err, response) => {
           if (response) getHabitsAndSet();
+          mutateDOMStateMachine('static-post-db-update');
         }
       );
     }
   };
 
-  useFrame(() => {
-    if (grow.current) growInFrames();
-    else if (shrink.current) shrinkInFrames();
-  });
-
-  const handleDayClosed = () => {
-    //console.log(treemoji + ' ' + dailyCompleteRef.current)
-    if (!dailyCompleteRef.current) handleShrink();
-  };
+  // const handleDayClosed = () => {
+  //   //console.log(treemoji + ' ' + dailyCompleteRef.current)
+  //   if (!dailyCompleteRef.current) handleShrink();
+  // };
 
   const shrinkInFrames = () => {
     tree.current.scale.x -= habit.rate;
     tree.current.scale.y -= habit.rate;
     tree.current.scale.z -= habit.rate;
-  };
 
-  const handleShrink = (event) => {
-    console.log('from shrink event listener: ', event.detail);
-    // setShrink(true);
-    // setTimeout(() => {
-    //   setShrink(false)
-    //   //setScale(tree.current.scale.x)
-    //   //todo post new scale in dbh
-    // }, 1000);
+    if (tree.current.scale.x <= shrinkTarget.current) {
+      mutateDOMStateMachine('static-pre-db-update');
+      updateHabit(
+        {
+          ...deepCopy(habit),
+          scale: tree.current.scale.x,
+          dateLastCompleted: new Date(),
+          dailyComplete: false,
+        },
+        (err, response) => {
+          if (response) getHabitsAndSet();
+          mutateDOMStateMachine('static-post-db-update');
+        }
+      );
+    }
   };
 
   // passing the ref for this component instance down to the respective model that gets rendered
@@ -135,34 +186,14 @@ export default function Tree({ getHabitsAndSet, position, scale, habit }) {
     }
   });
 
-  // const handleClickedCheck = (e) => {
-  //   // check that id matches and if we are checked
-  //   const id = e.detail.id.current;
-  //   const checked = e.detail.checked.current;
-  //   if (id === habitRef.current.id && checked === false) {
-  //     handleGrowth();
-  //   } else if (id === habitRef.current.id && checked === true) {
-  //     //again its a nasty event issue, with stale props and state
-  //     //when you deal in events in react you deal with nasty stale props and state
-  //     updateHabit(
-  //       {
-  //         ...deepCopy(habitRef.current),
-  //         dailyComplete: false,
-  //       },
-  //       (err, response) => {
-  //         if (response) getHabitsAndSet();
-  //       }
-  //     );
-  //   }
-  // };
-
+  //passing props on each render, if another tree gets checked, props will be passed down, while we are growing we don't want to a accept a stale tree prop from state, so instead we pass in the current ref scale value that is the current value while it is growing.
   return (
     <Model
       path={habit.path}
       info={habit}
       ref={tree}
       scale={
-        grow.current
+        passScalePropsFromDOM.current
           ? [tree.current.scale.x, tree.current.scale.y, tree.current.scale.z]
           : scale
       }

@@ -7,22 +7,24 @@ import SkyComponent from '../components/utility_components/SkyComponent';
 import CameraControls from '../components/utility_components/CameraControls';
 import HabitModal from '../components/HabitModal.jsx';
 import CreateModal from '../components/create-modal.jsx';
-import TimeKeeper from '../components/utility_components/Time';
+import { timeKeeper } from '../components/utility_components/Time';
 import Tree from '../components/Tree.jsx';
 import { getHabits, updateHabit } from '../helpers/ajax';
 import { deepCopy } from '../helpers/deepCopy';
-import { dateThreshold } from '../helpers/dateFunctions';
+import { shrinkTrees } from '../helpers/dateFunctions';
 extend({ OrbitControls });
 
 export default function App() {
-  //Keep state pure - when mutating state, the DOM will not do anything, react will appear is if its not working until you call setState. You will get weird console.logs that do not reflect in react. Always always create a fresh copy of state before mutating and setting.  This is good practice.
+  //When mutating state - dirtying state, the DOM will not do anything, react will appear as if its not working until you call setState. You will get weird console.logs that do not reflect in react. Always always create a fresh copy of state before mutating and setting.  This is good practice.
+
+  ////Using events in react.  Values passed into an event invocation must be of type React.MututableRefObject<T>, a ref object, to defeat the stale state problem.  On the listening side function, refs must be used to defeat the stale state problem as well.
 
   const [habits, setHabits] = useState({});
   const [modalShow, setModalShow] = useState(false);
   const [modalHabitKey, setModalHabitKey] = useState('default');
-  const [contextMenuShow, setContextMenuShow] = useState(false);
   const [createModalShow, setCreateModalShow] = useState(false);
   const [spacing, setSpacing] = useState(1);
+  const [compoundFactor, setGrowthFactor] = useState(10 * (1 / 100)); //10% for dev, make 1% later
   const [habitDefault, setHabitDefault] = useState({
     default: {
       id: '',
@@ -44,99 +46,77 @@ export default function App() {
   const inputs = useRef([]);
   const clickedID = useRef('');
   const checkedFlag = useRef(false);
-  const violatorID = useRef({});
   const checkBoxClicked = useRef({});
-  const shrinkTree = useRef({});
-  const firstDataLook = useRef(false);
+  const firstDataRender = useRef(false);
+  const habitsRef = useRef({});
 
+  //*** Testing */
+  //console.log('rendering index');
+
+  //takes place after first render **only**
   useEffect(() => {
-    //Using events in react.  Values passed into an event invocation must be of type React.MututableRefObject<T>, a ref object, to defeat the stale state problem.  On the listening side function, refs must be used to defeat the stale state problem as well.
+    //console.log('initial mount'); //after first render and mount
+    getHabitsAndSet(); //causes the second render
+    const intervalTimer = timeKeeper(compoundFactor, habitsRef);
 
-    checkBoxClicked.current = new CustomEvent('checkBoxClicked', {
-      detail: {
-        id: clickedID,
-        checked: checkedFlag,
-      },
-    });
-    shrinkTree.current = new CustomEvent('shrink', {
-      detail: {
-        id: violatorID.current,
-      },
-    });
-
-    getHabitsAndSet();
+    return () => clearInterval(intervalTimer);
   }, []);
 
-  //check to see if there are habits, dispatch to Tree component the offenders and id's of those not yet completed in required time.
-  useEffect(() => {
-    const trees = Object.values(habits);
-    if (trees.length > 0 && !firstDataLook.current) {
-      console.log('check for shrinkage on app load');
-      const violators = trees.filter((tree) => {
-        const threshold = dateThreshold(tree.dateLastCompleted, 1);
-        return Date.now() > threshold;
-      });
-      violators.map((tree) => {
-        violatorID.current = tree.id;
-        window.dispatchEvent(shrinkTree.current);
-      });
-      firstDataLook.current = true;
-    }
-  }, [habits]);
-
-  //methods
-  const handleAddHabit = (habitObject) => setHabits(habitObject);
-
-  const handleChangeHabit = (key, prop, value) => {
-    let habitCopy = { ...habits };
-    habitCopy[key][prop] = value;
-    //setting habits in state prior to growing
-    console.log('from function: ', habitCopy);
-    setHabits(habitCopy);
-  };
-  //console.log('comparing and rendering bc of a setState');
-  const handleOnCheck = (e) => {
-    const habit = deepCopy(habits[e.target.name]);
-    updateHabit(
-      { ...habit, dailyComplete: e.target.checked },
-      (err, result) => {
-        if (err) console.error(err);
-        else getHabitsAndSet();
-      }
-    );
-
-    //in case I wanted to
-    // this is a controlled state with habit.dailyComplete
-    // setHabits({
-    //   ...habits,
-    //   [e.target.name]: { ...habit, dailyComplete: e.target.checked },
-    // });
-
-    // e.target.disabled = false; //i believe something with ref is related to this
-  };
-
-  const uncheck = () => {
-    let habitCopy = { ...habits };
-    for (let key in habitCopy) {
-      habitCopy[key].dailyComplete = false;
-    }
-    setHabits(habitCopy);
-
-    //uncheck all habits
-    for (let i = 0; i < inputs.current.length; i++) {
-      inputs.current[i].disabled = false;
-    }
-    //todo post to db
-  };
-
-  //need to allow time for the rest of the habits to update the db before pulling from the db and
-  //resetting the changes in the other ones.
   const getHabitsAndSet = () => {
     getHabits((results) => {
       console.log('data from db pull', results.data);
       setHabits(results.data);
     });
   };
+
+  //takes place after second render **only**, our first look at data
+  useEffect(() => {
+    habitsRef.current = habits;
+    const trees = Object.values(habits);
+    if (!firstDataRender.current) {
+      shrinkTrees(trees, compoundFactor);
+      firstDataRender.current = true;
+    }
+  }, [habits]);
+
+  //methods
+  const handleAddHabit = (habitObject) => setHabits(habitObject);
+
+  // const handleChangeHabit = (key, prop, value) => {
+  //   let habitCopy = { ...habits };
+  //   habitCopy[key][prop] = value;
+  //   //setting habits in state prior to growing
+  //   console.log('from function: ', habitCopy);
+  //   setHabits(habitCopy);
+  // };
+  //console.log('comparing and rendering bc of a setState');
+  const handleOnCheck = (e) => {
+    const habit = deepCopy(habits[e.target.name]);
+    habit.dailyComplete = e.target.checked;
+    updateHabit(habit, (err, result) => {
+      if (err) {
+        console.error(err);
+      } else {
+        getHabitsAndSet();
+      }
+    });
+
+    // e.target.disabled = true; //i believe something with ref is related to this
+  };
+
+  // const uncheck = () => {
+  //   let habitCopy = { ...habits };
+  //   for (let key in habitCopy) {
+  //     habitCopy[key].dailyComplete = false;
+  //   }
+  //   setHabits(habitCopy);
+
+  //   //uncheck all habits
+  //   for (let i = 0; i < inputs.current.length; i++) {
+  //     inputs.current[i].disabled = false;
+  //   }
+  //   //todo post to db
+  // };
 
   const openModal = (e) => {
     setModalHabitKey(e.target.title);
@@ -179,7 +159,6 @@ export default function App() {
 
   return (
     <>
-      {/* <TimeKeeper uncheck={uncheck} /> */}
       <CreateModal
         show={createModalShow}
         handleClose={closeCreateModal}
@@ -259,6 +238,7 @@ export default function App() {
                 position={[setXpos(i, spacing), -1, setZpos(i, spacing)]}
                 habit={e}
                 getHabitsAndSet={getHabitsAndSet}
+                compoundFactor={compoundFactor}
               />
             )
           )}
