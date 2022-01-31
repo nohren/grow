@@ -8,7 +8,7 @@ import { shrinkTrees } from '../../helpers/dateFunctions';
 */
 
 export const timeKeeper = (compoundFactor, habits) => {
-  //create midnight date to check against
+  //create a date at midnight tomrrow to check against
   const timeToReference = createFutureDate();
 
   return setInterval(() => {
@@ -23,18 +23,18 @@ export const timeKeeper = (compoundFactor, habits) => {
       //FireOff and reset dateCheck to next days midnight
       const trees = Object.values(habits.current);
       shrinkTrees(trees, compoundFactor);
-      timeToReference = createFutureDate(timeToReference, 1);
+      timeToReference = createFutureDate(timeToReference);
     }
   }, 30000);
 };
 
-//given a date, creates a new date sometime in the future
+//given a date, returns a new date tomorrow, or can customize it with parameters
 const createFutureDate = (
   date = new Date(),
-  days = 0,
-  hours = 23,
-  minutes = 59,
-  seconds = 59
+  days = 1,
+  hours = 0,
+  minutes = 0,
+  seconds = 0
 ) => {
   const dateCopy = new Date(date.toString());
   dateCopy.setDate(dateCopy.getDate() + days);
