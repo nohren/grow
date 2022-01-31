@@ -24,7 +24,7 @@ export default function App() {
   const [modalHabitKey, setModalHabitKey] = useState('default');
   const [createModalShow, setCreateModalShow] = useState(false);
   const [spacing, setSpacing] = useState(1);
-  const [compoundFactor, setGrowthFactor] = useState(10 * (1 / 100)); //10% for dev, make 1% later
+  const [compoundFactor, setGrowthFactor] = useState(5 * (1 / 100)); //10% for dev, make 1% later
   const [habitDefault, setHabitDefault] = useState({
     default: {
       id: '',
@@ -73,7 +73,7 @@ export default function App() {
   useEffect(() => {
     habitsRef.current = habits;
     const trees = Object.values(habits);
-    if (!firstDataRender.current) {
+    if (trees.length > 0 && !firstDataRender.current) {
       shrinkTrees(trees, compoundFactor);
       firstDataRender.current = true;
     }

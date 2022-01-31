@@ -8,10 +8,6 @@ import { shrinkTrees } from '../../helpers/dateFunctions';
 */
 
 export const timeKeeper = (compoundFactor, habits) => {
-  const interval = 30000;
-
-  //test in minutes
-
   //create midnight date to check against
   const timeToReference = createFutureDate();
 
@@ -29,7 +25,7 @@ export const timeKeeper = (compoundFactor, habits) => {
       shrinkTrees(trees, compoundFactor);
       timeToReference = createFutureDate(timeToReference, 1);
     }
-  }, interval);
+  }, 30000);
 };
 
 //given a date, creates a new date sometime in the future

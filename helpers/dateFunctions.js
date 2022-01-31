@@ -2,14 +2,15 @@
 //it takes in an array of tree objects
 export const shrinkTrees = (trees, compoundFactor) => {
   const shrinkList = treesToShrink(trees, compoundFactor);
+  console.log(shrinkList);
   shrinkList.map((tree) => {
     //await R3F canvas mount. Due to webGL? need to wait about 500ms longer after "mount".
     //Deduced by moving through the logical assumption that after render, useEffect hook is called thus render should be complete. And by dispatching events manually in the chrome console on load I saw they weren't triggering the listener until a little after mount.  So setTimeout was the next natural step. Utilizing the event loop.
+    console.log(tree);
     setTimeout(() => {
-      const { id, newScale } = tree;
       window.dispatchEvent(
         new CustomEvent('shrink', {
-          detail: { id, newScale },
+          detail: tree,
         })
       );
     }, 3000);
