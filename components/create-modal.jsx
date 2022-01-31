@@ -1,6 +1,7 @@
 import { createHabit, getHabits } from '../helpers/ajax';
 import { useState } from 'react';
 import { Modal, Container, Row, Col, Button } from 'react-bootstrap';
+import { deepCopy } from '../helpers/deepCopy';
 
 const CreateModal = ({ show, handleClose, addHabit }) => {
   const [habit, setHabit] = useState({
@@ -25,7 +26,7 @@ const CreateModal = ({ show, handleClose, addHabit }) => {
 
   //function for appending the habit into parent habits state
   const addRemoveFrequency = (key, className) => {
-    let copyHabit = { ...habit };
+    const copyHabit = deepCopy(habit);
     if (className === 'frequencyBoxHighlighted col') {
       delete copyHabit.frequency[key];
     } else if (className === 'frequencyBox col') {
