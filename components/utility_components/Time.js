@@ -8,7 +8,7 @@ import { shrinkTrees } from '../../helpers/dateFunctions';
 */
 
 export const timeKeeper = (compoundFactor, habits) => {
-  const interval = 1000;
+  const interval = 30000;
 
   //test in minutes
 
