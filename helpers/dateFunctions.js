@@ -31,12 +31,14 @@ const getShrinkData = (
 ) => {
   const data = { id, newScale: 0 };
   if (Object.keys(frequency).length === 0) return data;
-  const deltaDays = computeDays(
-    new Date() -
-      dateDelinquencyThreshold(
-        dateLastCompleted,
-        nextComplete(dateLastCompleted, frequency)
-      )
+  const deltaDays = Math.ceil(
+    computeDays(
+      new Date() -
+        dateDelinquencyThreshold(
+          dateLastCompleted,
+          nextComplete(dateLastCompleted, frequency)
+        )
+    )
   );
   // console.log(
   //   'next complete day count',

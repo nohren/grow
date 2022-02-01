@@ -9,21 +9,25 @@ import { shrinkTrees } from '../../helpers/dateFunctions';
 
 export const timeKeeper = (compoundFactor, habits) => {
   //create a date at midnight tomrrow to check against
-  const timeToReference = createFutureDate();
+  //const timeToReference = createFutureDate();
 
+  let armed = true;
   return setInterval(() => {
     const now = new Date();
     //console.log('Time Reference', timeToReference);
     //console.log('curent time', now);
-
-    if (
-      now.getHours() === timeToReference.getHours() &&
-      now.getMinutes() === timeToReference.getMinutes()
-    ) {
+    if (now.getHours() === 21 && now.getMinutes() === 20) {
       //FireOff and reset dateCheck to next days midnight
-      const trees = Object.values(habits.current);
-      shrinkTrees(trees, compoundFactor);
-      timeToReference = createFutureDate(timeToReference);
+      if (armed) {
+        const trees = Object.values(habits.current);
+        shrinkTrees(trees, compoundFactor);
+        armed = false;
+      }
+      //timeToReference = createFutureDate(timeToReference);
+    } else {
+      if (!armed) {
+        armed = true;
+      }
     }
   }, 30000);
 };

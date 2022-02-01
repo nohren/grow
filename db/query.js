@@ -1,8 +1,8 @@
-const { Habit, Gfx, GfxIndex } = require('./gardenSchema')
+const { Habit, Gfx, GfxIndex } = require('./gardenSchema');
 //const db = require('./database')
 
 const insertHabit = async (habit, gfx, cb) => {
-  console.log(habit)
+  console.log(habit);
   try {
     //mongoose map convert number to string key
     const instance = new Habit({
@@ -16,25 +16,25 @@ const insertHabit = async (habit, gfx, cb) => {
       description: habit.description,
       reps: habit.reps,
       startDate: habit.startDate,
-      dateLastCompleted: habit.dateLastCompleted
+      dateLastCompleted: habit.dateLastCompleted,
+      initialScale: gfx.scale,
     });
+    console.log(instance);
     const success = await instance.save();
-    cb(success)
+    cb(success);
+  } catch (e) {
+    console.log(e);
   }
-  catch (e) {
-    console.log(e)
-  }
-}
+};
 
 const getGfx = async (cb) => {
   try {
     let res = await Gfx.find();
     cb(res);
-  }
-  catch (e) {
+  } catch (e) {
     console.log(e);
   }
-}
+};
 
 const getHabits = async (cb) => {
   try {
@@ -57,16 +57,16 @@ const getHabits = async (cb) => {
         description: e.description,
         reps: e.reps,
         startDate: e.startDate,
-        dateLastCompleted: e.dateLastCompleted
-      }
+        dateLastCompleted: e.dateLastCompleted,
+        initialScale: e.initialScale,
+      };
       habits[e.id] = currentHabit;
     }
     cb(habits);
-  }
-  catch (e) {
+  } catch (e) {
     console.log(e);
   }
-}
+};
 const updateHabit = async (habit, cb) => {
   const filter = habit.id;
   const update = habit;
@@ -76,13 +76,13 @@ const updateHabit = async (habit, cb) => {
   } catch (e) {
     console.log(e, null);
   }
-}
+};
 
 const deleteHabit = async (id, cb) => {
   try {
     let doc = await Habit.findByIdAndDelete(id.id);
     cb(null, doc);
-  }catch(e){
+  } catch (e) {
     cb(e, null);
   }
 };
@@ -98,8 +98,8 @@ const updateIndex = async (newIndex, cb) => {
   const update = { index: newIndex };
 
   const doc = await GfxIndex.findOneAndUpdate(filter, update, {
-    new: true
-  })
+    new: true,
+  });
   if (cb) cb(doc);
 };
 
@@ -129,11 +129,11 @@ const updateIndex = async (newIndex, cb) => {
 //       rate: gfx.rate
 //     })
 //     await instance.save();
-//   } 
+//   }
 //   createIndex(0);
-// } 
+// }
 // loadGFXCollection(gfxObjects);
-//   {treemoji: '🍁', path: 'fallingLeaves.glb', scale: 3, rate: 0.01}, 
+//   {treemoji: '🍁', path: 'fallingLeaves.glb', scale: 3, rate: 0.01},
 
 module.exports = {
   getHabits,
@@ -142,9 +142,8 @@ module.exports = {
   updateHabit,
   updateIndex,
   getIndex,
-  deleteHabit
-}
-
+  deleteHabit,
+};
 
 // const insertHabit = async (habit, cb) => {
 //   try {
