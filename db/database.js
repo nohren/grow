@@ -4,19 +4,14 @@ const mongoose = require('mongoose');
 //runs a function to see if the mongoose class has an open connection, otherwise create one
 export default async () => {
   if (mongoose.connection.readyState) return;
-  
+  //console.log('connection string: ', process.env.MONGODB_URI);
   try {
     await mongoose.connect(process.env.MONGODB_URI);
-    console.log("connected to database");
-  } catch(e) {
-    console.log("db error", e);
+    console.log('connected to database');
+  } catch (e) {
+    console.log('db error', e);
   }
-}
-
-
-
-
-
+};
 
 // db.on('error', () => {
 //   console.log('mongoose connection error');
@@ -27,4 +22,3 @@ export default async () => {
 // });
 
 // module.exports = db;
-

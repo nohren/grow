@@ -7,17 +7,11 @@
   This is a node.js environment inside a server.
 */
 import db from '../../db/database';
-import query from '../../db/query';
+import { getHabits } from '../../db/query';
 
 export default async (req, res) => {
-
-   await db(); //await the connection, then do stuff
-   return new Promise(resolve => {
-   if (req.method === 'GET') {
-     query.getHabits((data) => {
-       res.send(data);
-       resolve();
-     })
-   } 
-  })
-}
+  await db();
+  if (req.method === 'GET') {
+    res.send(await getHabits());
+  }
+};

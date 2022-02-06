@@ -24,7 +24,7 @@ export default function App() {
   const [modalHabitKey, setModalHabitKey] = useState('default');
   const [createModalShow, setCreateModalShow] = useState(false);
   const [spacing, setSpacing] = useState(1);
-  const [compoundFactor, setGrowthFactor] = useState(5 * (1 / 100)); //10% for dev, make 1% later
+  const [compoundFactor, setGrowthFactor] = useState(10 * (1 / 100)); //10% for dev, make 1% later
   const [habitDefault, setHabitDefault] = useState({
     default: {
       id: '',
@@ -148,13 +148,17 @@ export default function App() {
   //commonality is multiple of 4,i.e 4 is remainder 0 so +, 5 is remainder 1 so +, 6 remainder 2 -, 7 remainder 3 -
   //i % 4, 0 && 1 +, 2 && 3 -
   //how do we know to double the factor, this is acheived by math.ceiling, if i is a factor of 4, then increment i to use
-  let setXpos = (i, factor = 1) => {
+  const setXpos = (i, factor = 1) => {
     factor *= Math.ceil((i % 4 === 0 ? i + 1 : i) / 4);
     return i % 4 === 0 || i % 4 === 1 ? factor : -1 * factor;
   };
-  let setZpos = (i, factor = 1) => {
+  const setZpos = (i, factor = 1) => {
     factor *= Math.ceil((i % 4 === 0 ? i + 1 : i) / 4);
     return i % 4 === 1 || i % 4 === 2 ? factor : -1 * factor;
+  };
+
+  const calculateScore = (current, initial) => {
+    return ((current / initial - 1) * 10).toFixed(2) + '%';
   };
 
   return (
@@ -168,32 +172,36 @@ export default function App() {
         <Button onClick={openCreateModal} variant="primary">
           Create
         </Button>{' '}
-        {Object.values(habits).map((e) =>
-          Object.values(habits).length === 0 || e.path === '' ? null : (
-            <div className="habit" key={e.id}>
-              <div title={e.id} onClick={openModal} className="labels">
-                {e.habit} {e.treemoji}
-              </div>
-              <input
-                ref={
-                  //anonymous function pushing this input DOM node to the ref array for the purpose of disabling the checkbox
-                  (input) => {
-                    if (
-                      input !== null &&
-                      inputs.current.length < Object.keys(habits).length
-                    )
-                      inputs.current.push(input);
+        {Object.values(habits).length === 0
+          ? null
+          : Object.values(habits).map((e) => (
+              <div className="habit" key={e.id}>
+                <div title={e.id} onClick={openModal} className="labels">
+                  {e.habit} {e.treemoji}
+                </div>
+
+                <input
+                  ref={
+                    //anonymous function pushing this input DOM node to the ref array for the purpose of disabling the checkbox
+                    (input) => {
+                      if (
+                        input !== null &&
+                        inputs.current.length < Object.keys(habits).length
+                      )
+                        inputs.current.push(input);
+                    }
                   }
-                }
-                className="checkbox"
-                type="checkbox"
-                onChange={handleOnCheck}
-                name={e.id}
-                checked={e.dailyComplete}
-              />
-            </div>
-          )
-        )}
+                  className="checkbox"
+                  type="checkbox"
+                  onChange={handleOnCheck}
+                  name={e.id}
+                  checked={e.dailyComplete}
+                />
+                <div className="score">
+                  Score: {calculateScore(e.scale, e.initialScale)}
+                </div>
+              </div>
+            ))}
       </div>
       <div className="spacing-container">
         <Button
@@ -230,18 +238,18 @@ export default function App() {
           }
         >
           <SkyComponent />
-          {Object.values(habits).map((e, i) =>
-            Object.values(habits).length === 0 || e.path === '' ? null : (
-              <Tree
-                key={e.id}
-                scale={[e.scale, e.scale, e.scale]}
-                position={[setXpos(i, spacing), -1, setZpos(i, spacing)]}
-                habit={e}
-                getHabitsAndSet={getHabitsAndSet}
-                compoundFactor={compoundFactor}
-              />
-            )
-          )}
+          {Object.values(habits).length === 0
+            ? null
+            : Object.values(habits).map((e, i) => (
+                <Tree
+                  key={e.id}
+                  scale={[e.scale, e.scale, e.scale]}
+                  position={[setXpos(i, spacing), -1, setZpos(i, spacing)]}
+                  habit={e}
+                  getHabitsAndSet={getHabitsAndSet}
+                  compoundFactor={compoundFactor}
+                />
+              ))}
         </Suspense>
       </Canvas>
     </>

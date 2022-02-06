@@ -1,39 +1,35 @@
 import db from '../../db/database';
-import query from '../../db/query';
+import {
+  updateHabit,
+  deleteHabit,
+  updateIndex,
+  insertHabit,
+  getIndex,
+  getGfx,
+} from '../../db/query';
 
 export default async (req, res) => {
-  await db(); //await the connection, then do stuff
-  return new Promise((resolve) => {
-    if (req.method === 'PUT') {
-      query.updateHabit(req.body, (err, response) => {
-        if (err) res.send(err);
-        else res.send(response);
-        resolve();
-      });
-    } else if (req.method === 'DELETE') {
-      query.deleteHabit(req.body, (err, response) => {
-        if (err) res.send(err);
-        else res.send(response);
-        resolve();
-      });
-    } else if (req.method === 'POST') {
-      query.getGfx((gfxData) => {
-        query.getIndex((data) => {
-          let i = data.index;
-          const gfxInstance = gfxData[i];
+  try {
+    await db();
 
-          //increment index or reset
-          if (i >= gfxData.length - 1) {
-            query.updateIndex(0);
-          } else {
-            query.updateIndex(i + 1);
-          }
-          query.insertHabit(req.body, gfxInstance, (result) => {
-            res.send('Added to db');
-            resolve();
-          });
-        });
-      });
+    if (req.method === 'PUT') {
+      res.send(await updateHabit(req.body));
+    } else if (req.method === 'DELETE') {
+      res.send(await deleteHabit(req.body));
+    } else if (req.method === 'POST') {
+      const gfxData = await getGfx();
+      const { index } = await getIndex();
+      const gfxInstance = gfxData[index];
+
+      //increment index or reset
+      if (index >= gfxData.length - 1) {
+        await updateIndex(0);
+      } else {
+        await updateIndex(index + 1);
+      }
+      res.send(await insertHabit(req.body, gfxInstance));
     }
-  });
+  } catch (e) {
+    res.send(e);
+  }
 };

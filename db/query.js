@@ -1,8 +1,7 @@
 const { Habit, Gfx, GfxIndex } = require('./gardenSchema');
-//const db = require('./database')
 
-const insertHabit = async (habit, gfx, cb) => {
-  console.log(habit);
+export const insertHabit = async (habit, gfx) => {
+  // console.log(habit);
   try {
     //mongoose map convert number to string key
     const instance = new Habit({
@@ -19,24 +18,22 @@ const insertHabit = async (habit, gfx, cb) => {
       dateLastCompleted: habit.dateLastCompleted,
       initialScale: gfx.scale,
     });
-    console.log(instance);
-    const success = await instance.save();
-    cb(success);
+    //console.log(instance);
+    return await instance.save();
   } catch (e) {
-    console.log(e);
+    return e;
   }
 };
 
-const getGfx = async (cb) => {
+export const getGfx = async () => {
   try {
-    let res = await Gfx.find();
-    cb(res);
+    return await Gfx.find();
   } catch (e) {
-    console.log(e);
+    return e;
   }
 };
 
-const getHabits = async (cb) => {
+export const getHabits = async () => {
   try {
     const result = await Habit.find();
     let habits = {};
@@ -62,88 +59,117 @@ const getHabits = async (cb) => {
       };
       habits[e.id] = currentHabit;
     }
-    cb(habits);
+    return habits;
   } catch (e) {
-    console.log(e);
+    return e;
   }
 };
-const updateHabit = async (habit, cb) => {
+
+export const updateHabit = async (habit) => {
   const filter = habit.id;
   const update = habit;
   try {
-    let doc = await Habit.findByIdAndUpdate(filter, update);
-    cb(null, doc);
+    return await Habit.findByIdAndUpdate(filter, update);
   } catch (e) {
-    console.log(e, null);
+    return e;
   }
 };
 
-const deleteHabit = async (id, cb) => {
+export const deleteHabit = async (id) => {
   try {
-    let doc = await Habit.findByIdAndDelete(id.id);
-    cb(null, doc);
+    return await Habit.findByIdAndDelete(id.id);
   } catch (e) {
-    cb(e, null);
+    return e;
   }
 };
 
-const getIndex = async (cb) => {
-  const doc = await GfxIndex.find();
-  cb(doc[0]);
+export const getIndex = async () => {
+  try {
+    //do not do any data shaping on a promise, wait until it resolves. Do the data shaping on the next line.
+    const res = await GfxIndex.find();
+    return res[0];
+  } catch (e) {
+    return e;
+  }
 };
 
-const updateIndex = async (newIndex, cb) => {
+export const updateIndex = async (newIndex) => {
   // finds the only document
   const filter = {};
   const update = { index: newIndex };
-
-  const doc = await GfxIndex.findOneAndUpdate(filter, update, {
-    new: true,
-  });
-  if (cb) cb(doc);
+  try {
+    return await GfxIndex.findOneAndUpdate(filter, update, {
+      new: true,
+    });
+  } catch (e) {
+    return e;
+  }
 };
 
 //************************************************************* db ETL */
 
-// const createIndex = async (current) => {
-//    const instance = new GfxIndex({
-//      index: current,
-//    })
-//    await instance.save();
+// const createIndex = (current) => {
+//   const instance = new GfxIndex({
+//     index: current,
+//   });
+//   try {
+//     //returns a promise, once this finishes, the promise resolves or is rejected,
+//     //if rejected we will see it on the catch block of the main.js then
+//     //return returns the value in the promise to the then block like a res() would.
+//     //otherwise control is handed to the then block when the promise resolves.
+
+//     //no matter what happens within an async function, it will immediately return a promise
+//     //you must await it or then it outside of this context.
+
+//     return instance.save();
+//     //return 'Created db index';
+//   } catch (e) {
+//     return e;
+//   }
 // };
 
 // const gfxObjects = [
-//   {treemoji: '🌴', path: 'Palm.glb', scale: 0.18, rate: 0.001},
-//   {treemoji: '🌲', path: 'Spruce.glb', scale: 0.25, rate: 0.001},
-//   {treemoji: '🌵', path: 'Cactus.glb', scale: 0.3, rate: 0.001},
-//   {treemoji: '🌳', path: 'dec.glb', scale: 0.3, rate: 0.001},
-//   {treemoji: '🌺', path: 'Bush.glb', scale: 0.5, rate: 0.001}
+//   { treemoji: '🌴', path: 'Palm.glb', scale: 0.18, rate: 0.001 },
+//   { treemoji: '🌲', path: 'Spruce.glb', scale: 0.25, rate: 0.001 },
+//   { treemoji: '🌵', path: 'Cactus.glb', scale: 0.3, rate: 0.001 },
+//   { treemoji: '🌳', path: 'dec.glb', scale: 0.3, rate: 0.001 },
+//   { treemoji: '🌺', path: 'Bush.glb', scale: 0.5, rate: 0.001 },
 // ];
 
 // const loadGFXCollection = async (payload) => {
+//   const gfxs = [];
 //   for (let gfx of payload) {
 //     const instance = new Gfx({
 //       treemoji: gfx.treemoji,
 //       path: gfx.path,
 //       scale: gfx.scale,
-//       rate: gfx.rate
-//     })
-//     await instance.save();
+//       rate: gfx.rate,
+//     });
+//     gfxs.push(instance.save());
 //   }
-//   createIndex(0);
-// }
-// loadGFXCollection(gfxObjects);
-//   {treemoji: '🍁', path: 'fallingLeaves.glb', scale: 3, rate: 0.01},
+//   try {
+//     await Promise.all(gfxs);
+//     await createIndex(0);
+//     return 'finished ETL process';
+//   } catch (e) {
+//     return e;
+//   }
+// };
+// const db = require('./database');
+// db().then((res) =>
+//   loadGFXCollection(gfxObjects).then((res) => console.log(res))
+// );
+//{treemoji: '🍁', path: 'fallingLeaves.glb', scale: 3, rate: 0.01},
 
-module.exports = {
-  getHabits,
-  insertHabit,
-  getGfx,
-  updateHabit,
-  updateIndex,
-  getIndex,
-  deleteHabit,
-};
+// module.exports = {
+//   getHabits,
+//   insertHabit,
+//   getGfx,
+//   updateHabit,
+//   updateIndex,
+//   getIndex,
+//   deleteHabit,
+// };
 
 // const insertHabit = async (habit, cb) => {
 //   try {

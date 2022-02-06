@@ -29,6 +29,7 @@ body {
   color: hotpink;
   cursor: pointer;
   display: flex;
+  align-items: center;
 }
 
 .checkbox {
@@ -79,4 +80,8 @@ body {
 
 .spacing-container .spacing-button {
   margin: 0 10px;
+}
+
+.score {
+  margin-left: 20px;
 }
