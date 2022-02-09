@@ -15,7 +15,7 @@ export const timeKeeper = (compoundFactor, habits) => {
   return setInterval(() => {
     const now = new Date();
     //console.log('Time Reference', timeToReference);
-    //console.log('curent time', now);
+    console.log('current time', now);
     if (now.getHours() === 21 && now.getMinutes() === 20) {
       //FireOff and reset dateCheck to next days midnight
       if (armed) {

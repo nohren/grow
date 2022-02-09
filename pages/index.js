@@ -57,6 +57,7 @@ export default function App() {
   useEffect(() => {
     //console.log('initial mount'); //after first render and mount
     getHabitsAndSet(); //causes the second render
+    console.log('Start of browser session: ', new Date());
     const intervalTimer = timeKeeper(compoundFactor, habitsRef);
 
     return () => clearInterval(intervalTimer);
