@@ -57,38 +57,17 @@ const HabitModal = ({ show, onHide, readrender, modalhabit }) => {
     setHabit({ ...habit, [e.target.name]: e.target.value });
   };
 
-  const handleSave = () => {
-    updateHabit(habit, (err, result) => {
-      if (err) {
-        console.log(err);
-      } else {
-        readrender();
-        onHide();
-        // saveFlag.current = true;
-      }
-    });
-  };
-  //once modal habit is updated and save flag exists, hide modal.  This prevents the modal from closing before we've pulled the updated data, resulting in it appearing to reset itself.
-  // useEffect(() => {
-  //   if (saveFlag.current) {
-  //     //onHide();
-  //     saveFlag.current = false;
-  //   }
-  // }, [modalhabit]);
-
-  //react bootstrap component cannot accept unknown props, so we pull it out of the stream before sending the rest to the Modal.  That's what this syntax does.
-  //const { addremove, changehabit, ...others } = props;
-
-  const handleDelete = () => {
+  const handleSave = async () => {
+    await updateHabit(habit);
+    readrender();
     onHide();
-    deleteHabit(habit.id, (err, res) => {
-      if (err) {
-        console.log(err);
-      } else {
-        console.log('success');
-        readrender();
-      }
-    });
+  };
+
+  const handleDelete = async () => {
+    onHide();
+    await deleteHabit(habit.id);
+    console.log('success');
+    readrender();
   };
 
   return (

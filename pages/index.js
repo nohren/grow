@@ -1,3 +1,4 @@
+import Head from 'next/head';
 import { Button } from 'react-bootstrap';
 import React, { Suspense, useEffect, useRef, useState } from 'react';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
@@ -58,23 +59,27 @@ export default function App() {
     //console.log('initial mount'); //after first render and mount
     getHabitsAndSet(); //causes the second render
     console.log('Start of browser session: ', new Date());
-    const intervalTimer = timeKeeper(compoundFactor, habitsRef);
+    const intervalTimer = timeKeeper(
+      compoundFactor,
+      habitsRef,
+      getHabitsAndSet
+    );
 
     return () => clearInterval(intervalTimer);
   }, []);
 
-  const getHabitsAndSet = () => {
-    getHabits((results) => {
-      console.log('data from db pull', results.data);
-      setHabits(results.data);
-    });
+  const getHabitsAndSet = async () => {
+    const results = await getHabits();
+    console.log('data from db pull', results.data);
+    setHabits(results.data);
   };
 
-  //takes place after second render **only**, our first look at data
   useEffect(() => {
+    //effect triggers after each change of habits state
     habitsRef.current = habits;
     const trees = Object.values(habits);
     if (trees.length > 0 && !firstDataRender.current) {
+      //takes place after second render **only**, our first look at data
       shrinkTrees(trees, compoundFactor);
       firstDataRender.current = true;
     }
@@ -91,18 +96,13 @@ export default function App() {
   //   setHabits(habitCopy);
   // };
   //console.log('comparing and rendering bc of a setState');
-  const handleOnCheck = (e) => {
-    const habit = deepCopy(habits[e.target.name]);
+  const handleOnCheck = async (e) => {
+    //Selecting the address of one habit, making a change on a shallow key value pair so shallow copy
+    //then sending to db
+    const habit = { ...habits[e.target.name] };
     habit.dailyComplete = e.target.checked;
-    updateHabit(habit, (err, result) => {
-      if (err) {
-        console.error(err);
-      } else {
-        getHabitsAndSet();
-      }
-    });
-
-    // e.target.disabled = true; //i believe something with ref is related to this
+    await updateHabit(habit);
+    getHabitsAndSet();
   };
 
   // const uncheck = () => {
@@ -164,10 +164,17 @@ export default function App() {
 
   return (
     <>
+      <Head>
+        <style>
+          @import
+          url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+        </style>
+      </Head>
+      <div className="title">Habitat</div>
       <CreateModal
         show={createModalShow}
         handleClose={closeCreateModal}
-        addHabit={handleAddHabit}
+        addHabit={getHabitsAndSet}
       />
       <div className="habitsContainer">
         <Button onClick={openCreateModal} variant="primary">

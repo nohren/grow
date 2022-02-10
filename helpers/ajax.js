@@ -1,16 +1,16 @@
 import axios from 'axios';
 const server = '/api';
 
-export const createHabit = async (habit, cb) => {
+export const createHabit = async (habit) => {
   try {
     const res = await axios.post(server + '/habit', habit);
-    cb(res);
+    return res;
   } catch (e) {
-    console.log(e);
+    return e;
   }
 };
 
-export const getHabits = async (cb) => {
+export const getHabits = async () => {
   try {
     const res = await axios.get(server + '/habits');
     let array = Object.keys(res.data);
@@ -20,28 +20,40 @@ export const getHabits = async (cb) => {
         res.data[key].dateLastCompleted
       );
     }
-    cb(res);
+    return res;
   } catch (e) {
-    console.log(e);
+    return e;
   }
 };
 
-export const updateHabit = async (habit, cb) => {
+export const updateHabit = async (habit) => {
   try {
     const res = await axios.put(server + '/habit', habit);
-    cb(null, res);
+    return res;
   } catch (e) {
-    cb(e, null);
+    return e;
   }
 };
 
-export const deleteHabit = async (habitId, cb) => {
+export const updateHabits = async (arrayOfHabits) => {
+  const promiseArray = [];
+  for (let habit of arrayOfHabits) {
+    promiseArray.push(updateHabit(habit));
+  }
+  try {
+    return await Promise.all(promiseArray);
+  } catch (e) {
+    return e;
+  }
+};
+
+export const deleteHabit = async (habitId) => {
   try {
     const res = await axios.delete(server + '/habit', {
       data: { id: habitId },
     });
-    cb(null, res);
+    return res;
   } catch (e) {
-    cb(e, null);
+    return e;
   }
 };

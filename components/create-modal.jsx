@@ -1,4 +1,4 @@
-import { createHabit, getHabits } from '../helpers/ajax';
+import { createHabit } from '../helpers/ajax';
 import { useState } from 'react';
 import { Modal, Container, Row, Col, Button } from 'react-bootstrap';
 import { deepCopy } from '../helpers/deepCopy';
@@ -46,12 +46,9 @@ const CreateModal = ({ show, handleClose, addHabit }) => {
     setHabit({ ...habit, [e.target.name]: e.target.value });
   };
   //treemoji, path, scale, rate
-  const handleSave = () => {
-    createHabit(habit, (res) => {
-      getHabits((h) => {
-        addHabit(h.data);
-      });
-    });
+  const handleSave = async () => {
+    await createHabit(habit);
+    await addHabit();
     setHabit(defaultHabit);
   };
 

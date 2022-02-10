@@ -111,52 +111,39 @@ export default function Tree({
 
   //always mutate the instance DOM in animation frames, don't use react set state functionality.
   //when finished return promise to signify proccess is complete
-  const growInFrames = () => {
+  const growInFrames = async () => {
     tree.current.scale.x += habit.rate;
     tree.current.scale.y += habit.rate;
     tree.current.scale.z += habit.rate;
 
     if (tree.current.scale.x >= growthTarget.current) {
       mutateDOMStateMachine('static-pre-db-update');
-      updateHabit(
-        {
-          ...deepCopy(habit),
-          scale: tree.current.scale.x,
-          dateLastCompleted: new Date(),
-          reps: habit.reps + 1,
-        },
-        (err, response) => {
-          if (response) getHabitsAndSet();
-          mutateDOMStateMachine('static-post-db-update');
-        }
-      );
+      await updateHabit({
+        ...habit,
+        scale: tree.current.scale.x,
+        dateLastCompleted: new Date(),
+        reps: habit.reps + 1,
+      });
+      await getHabitsAndSet();
+      mutateDOMStateMachine('static-post-db-update');
     }
   };
 
-  // const handleDayClosed = () => {
-  //   //console.log(treemoji + ' ' + dailyCompleteRef.current)
-  //   if (!dailyCompleteRef.current) handleShrink();
-  // };
-
-  const shrinkInFrames = () => {
+  const shrinkInFrames = async () => {
     tree.current.scale.x -= habit.rate;
     tree.current.scale.y -= habit.rate;
     tree.current.scale.z -= habit.rate;
 
     if (tree.current.scale.x <= shrinkTarget.current) {
       mutateDOMStateMachine('static-pre-db-update');
-      updateHabit(
-        {
-          ...deepCopy(habit),
-          scale: tree.current.scale.x,
-          dateLastCompleted: new Date(),
-          dailyComplete: false,
-        },
-        (err, response) => {
-          if (response) getHabitsAndSet();
-          mutateDOMStateMachine('static-post-db-update');
-        }
-      );
+      await updateHabit({
+        ...habit,
+        scale: tree.current.scale.x,
+        dateLastCompleted: new Date(),
+        dailyComplete: false,
+      });
+      await getHabitsAndSet();
+      mutateDOMStateMachine('static-post-db-update');
     }
   };
 
