@@ -85,20 +85,8 @@ export default function App() {
     }
   }, [habits]);
 
-  //methods
-  const handleAddHabit = (habitObject) => setHabits(habitObject);
-
-  // const handleChangeHabit = (key, prop, value) => {
-  //   let habitCopy = { ...habits };
-  //   habitCopy[key][prop] = value;
-  //   //setting habits in state prior to growing
-  //   console.log('from function: ', habitCopy);
-  //   setHabits(habitCopy);
-  // };
-  //console.log('comparing and rendering bc of a setState');
   const handleOnCheck = async (e) => {
-    //Selecting the address of one habit, making a change on a shallow key value pair so shallow copy
-    //then sending to db
+    e.target.checked = e.target.checked;
     const habit = { ...habits[e.target.name] };
     habit.dailyComplete = e.target.checked;
     await updateHabit(habit);
@@ -206,7 +194,7 @@ export default function App() {
                   checked={e.dailyComplete}
                 />
                 <div className="score">
-                  Score: {calculateScore(e.scale, e.initialScale)}
+                  Growth: {calculateScore(e.scale, e.initialScale)}
                 </div>
               </div>
             ))}
