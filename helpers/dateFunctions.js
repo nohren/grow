@@ -26,7 +26,7 @@ const treesToShrink = (trees, compoundFactor) => {
 };
 
 const getShrinkData = (
-  { dateLastCompleted, frequency, id, scale },
+  { dateLastCompleted, frequency, id, scale, initialScale },
   compoundFactor
 ) => {
   const data = { id, newScale: 0 };
@@ -40,15 +40,21 @@ const getShrinkData = (
         )
     )
   );
-  // console.log(
-  //   'next complete day count',
-  //   nextComplete(dateLastCompleted, frequency)
-  // );
-  // console.log('scale', scale);
-  // console.log('days', deltaDays);
-  // console.log(1 - compoundFactor);
+
+  /*
+  testing cases
+  newScale = 0 // habit is not due, don't change scale
+  newScale > 0 && newScale > initialScale // habit is due, shrink
+
+  newScale > 0 && newScale < initialScale //habit is due, but will shrink tree smaller than when it started.  This habit is has been broken.  For better or worse.
+  newScale = 0 and scale < initialScale, set scale to initialscale, we went too far
+  */
   if (deltaDays > 0) {
-    data.newScale = scale * (1 - compoundFactor) ** deltaDays;
+    data.newScale =
+      scale * (1 - compoundFactor) ** deltaDays > initialScale
+        ? scale * (1 - compoundFactor) ** deltaDays
+        : initialScale;
+    data.newScale = scale === data.newScale ? 0 : data.newScale;
   }
   return data;
 };
