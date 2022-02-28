@@ -180,12 +180,6 @@ export default function App() {
 
   return (
     <>
-      <Head>
-        <style>
-          @import
-          url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
-        </style>
-      </Head>
       <div className="title">Habitat</div>
       <CreateModal
         show={createModalShow}
