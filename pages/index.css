@@ -107,3 +107,13 @@ body {
   border-radius: 0.6em;
   overflow: hidden;
 }
+
+@media only screen and (max-width: 1024px) {
+  .title {
+    font-size: 2em;
+    left: 20%;
+  }
+
+  .habitsContainer .table {
+  }
+}
