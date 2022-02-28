@@ -35,8 +35,13 @@ body {
 
 .checkbox {
   cursor: pointer;
-  height: 29px;
-  width: 29px;
+  height: 70%;
+  width: 70%;
+  position: absolute;
+}
+
+.tdCheckBox {
+  position: relative;
 }
 
 .frequencyFlex {
@@ -95,4 +100,10 @@ body {
   color: hotpink;
   font-family: 'Press Start 2P', cursive;
   font-size: xx-large;
+}
+
+.habitsContainer .table {
+  margin: 1rem 0;
+  border-radius: 0.6em;
+  overflow: hidden;
 }

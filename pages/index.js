@@ -1,6 +1,6 @@
+import { Button, Table } from 'react-bootstrap';
 import Head from 'next/head';
-import { Button } from 'react-bootstrap';
-import React, { Suspense, useEffect, useRef, useState } from 'react';
+import React, { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { Canvas, useFrame, extend } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
@@ -47,7 +47,7 @@ export default function App() {
   const inputs = useRef([]);
   const clickedID = useRef('');
   const checkedFlag = useRef(false);
-  const checkBoxClicked = useRef({});
+  const checkBoxClicked = useRef();
   const firstDataRender = useRef(false);
   const habitsRef = useRef({});
 
@@ -83,29 +83,19 @@ export default function App() {
       shrinkTrees(trees, compoundFactor);
       firstDataRender.current = true;
     }
+    for (let ref of inputs.current) {
+      if (habits[ref.name]?.dailyComplete) {
+        ref.checked = habits[ref.name].dailyComplete;
+      }
+    }
   }, [habits]);
 
   const handleOnCheck = async (e) => {
-    e.target.checked = e.target.checked;
     const habit = { ...habits[e.target.name] };
     habit.dailyComplete = e.target.checked;
     await updateHabit(habit);
     getHabitsAndSet();
   };
-
-  // const uncheck = () => {
-  //   let habitCopy = { ...habits };
-  //   for (let key in habitCopy) {
-  //     habitCopy[key].dailyComplete = false;
-  //   }
-  //   setHabits(habitCopy);
-
-  //   //uncheck all habits
-  //   for (let i = 0; i < inputs.current.length; i++) {
-  //     inputs.current[i].disabled = false;
-  //   }
-  //   //todo post to db
-  // };
 
   const openModal = (e) => {
     setModalHabitKey(e.target.title);
@@ -150,6 +140,44 @@ export default function App() {
     return ((current / initial - 1) * 10).toFixed(2) + '%';
   };
 
+  const generateHabitrows = () => {
+    const rowHTML = [];
+    Object.values(habits).map((habit) => {
+      rowHTML.push(
+        <tr key={habit.id}>
+          <td>{habit.treemoji}</td>
+          <td>{habit.habit}</td>
+          <td>{calculateScore(habit.scale, habit.initialScale)}</td>
+          <td className="tdCheckBox">
+            <input
+              ref={
+                //anonymous function pushing this input DOM node to the ref array for the purpose of disabling the checkbox
+                (input) => {
+                  if (
+                    input !== null &&
+                    inputs.current.length < Object.keys(habits).length
+                  )
+                    inputs.current.push(input);
+                }
+              }
+              className="checkbox"
+              type="checkbox"
+              onChange={handleOnCheck}
+              name={habit.id}
+            />
+          </td>
+          <td>
+            <Button title={habit.id} onClick={openModal} variant="primary">
+              edit
+            </Button>
+          </td>
+        </tr>
+      );
+    });
+
+    return rowHTML;
+  };
+
   return (
     <>
       <Head>
@@ -168,36 +196,18 @@ export default function App() {
         <Button onClick={openCreateModal} variant="primary">
           Create
         </Button>{' '}
-        {Object.values(habits).length === 0
-          ? null
-          : Object.values(habits).map((e) => (
-              <div className="habit" key={e.id}>
-                <div title={e.id} onClick={openModal} className="labels">
-                  {e.habit} {e.treemoji}
-                </div>
-
-                <input
-                  ref={
-                    //anonymous function pushing this input DOM node to the ref array for the purpose of disabling the checkbox
-                    (input) => {
-                      if (
-                        input !== null &&
-                        inputs.current.length < Object.keys(habits).length
-                      )
-                        inputs.current.push(input);
-                    }
-                  }
-                  className="checkbox"
-                  type="checkbox"
-                  onChange={handleOnCheck}
-                  name={e.id}
-                  checked={e.dailyComplete}
-                />
-                <div className="score">
-                  Growth: {calculateScore(e.scale, e.initialScale)}
-                </div>
-              </div>
-            ))}
+        <Table striped bordered hover variant="dark">
+          <thead>
+            <tr>
+              <th>Icon</th>
+              <th>Habit</th>
+              <th>Growth</th>
+              <th>Complete</th>
+              <th>Edit</th>
+            </tr>
+          </thead>
+          <tbody>{generateHabitrows()}</tbody>
+        </Table>
       </div>
       <div className="spacing-container">
         <Button
