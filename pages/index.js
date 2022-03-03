@@ -142,9 +142,22 @@ export default function App() {
 
   const generateHabitrows = () => {
     const rowHTML = [];
+    let isButtonExist = false;
+    const buttonNoExist = () => {
+      isButtonExist = true;
+      return (
+        <td>
+          <Button onClick={openCreateModal} variant="primary">
+            Create
+          </Button>
+        </td>
+      );
+    };
+    const buttonExist = () => <td></td>;
     Object.values(habits).map((habit) => {
       rowHTML.push(
         <tr key={habit.id}>
+          {!isButtonExist ? buttonNoExist() : buttonExist()}
           <td>{habit.treemoji}</td>
           <td>{habit.habit}</td>
           <td>{calculateScore(habit.scale, habit.initialScale)}</td>
@@ -187,12 +200,10 @@ export default function App() {
         addHabit={getHabitsAndSet}
       />
       <div className="habitsContainer">
-        <Button onClick={openCreateModal} variant="primary">
-          Create
-        </Button>{' '}
         <Table striped bordered hover variant="dark">
           <thead>
             <tr>
+              <th>Create</th>
               <th>Icon</th>
               <th>Habit</th>
               <th>Growth</th>
