@@ -16,8 +16,8 @@ body {
 .habitsContainer {
   z-index: 1;
   position: absolute;
-  top: 5%;
-  left: 5%;
+  top: 3%;
+  left: 3%;
 }
 
 .canvas-container {
