@@ -95,12 +95,10 @@ body {
 .title {
   position: absolute;
   z-index: 1;
-  left: 3%;
+  display: flex;
+  justify-content: center;
   width: 90vw;
   top: 2%;
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
 }
 
 .gameFont {
@@ -109,7 +107,7 @@ body {
   font-size: 60px;
 }
 .positionJoke {
-  position: fixed;
+  position: absolute;
   bottom: 3%;
   left: 5%;
   z-index: 1;
