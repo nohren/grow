@@ -1,5 +1,4 @@
 import { Button, Table } from 'react-bootstrap';
-import Head from 'next/head';
 import React, { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { Canvas, useFrame, extend } from '@react-three/fiber';
@@ -11,15 +10,15 @@ import CreateModal from '../components/create-modal.jsx';
 import { timeKeeper } from '../components/utility_components/Time';
 import Tree from '../components/Tree.jsx';
 import { getHabits, updateHabit } from '../helpers/ajax';
-import { deepCopy } from '../helpers/deepCopy';
 import { shrinkTrees } from '../helpers/dateFunctions';
 extend({ OrbitControls });
+import axios from 'axios';
 
 export default function App() {
   //When mutating state - dirtying state, the DOM will not do anything, react will appear as if its not working until you call setState. You will get weird console.logs that do not reflect in react. Always always create a fresh copy of state before mutating and setting.  This is good practice.
 
   ////Using events in react.  Values passed into an event invocation must be of type React.MututableRefObject<T>, a ref object, to defeat the stale state problem.  On the listening side function, refs must be used to defeat the stale state problem as well.
-
+  const [joke, setJoke] = useState({});
   const [habits, setHabits] = useState({});
   const [modalShow, setModalShow] = useState(false);
   const [modalHabitKey, setModalHabitKey] = useState('default');
@@ -58,20 +57,53 @@ export default function App() {
   useEffect(() => {
     //console.log('initial mount'); //after first render and mount
     getHabitsAndSet(); //causes the second render
+    getAndSetJoke();
     console.log('Start of browser session: ', new Date());
     const intervalTimer = timeKeeper(
       compoundFactor,
       habitsRef,
-      getHabitsAndSet
+      getHabitsAndSet,
+      getAndSetJoke
     );
 
     return () => clearInterval(intervalTimer);
   }, []);
 
   const getHabitsAndSet = async () => {
-    const results = await getHabits();
-    console.log('data from db pull', results.data);
-    setHabits(results.data);
+    const promises = [];
+    promises.push(getHabits());
+    Promise.all(promises)
+      .then((res) => {
+        console.log('data from db pull', res[0].data);
+
+        setHabits(res[0].data);
+      })
+      .catch((err) => console.log(err));
+  };
+
+  const getAndSetJoke = () => {
+    const getAJoke = async () => {
+      const options = {
+        method: 'GET',
+        url: 'https://dad-jokes.p.rapidapi.com/random/joke',
+        headers: {
+          'X-RapidAPI-Host': 'dad-jokes.p.rapidapi.com',
+          'X-RapidAPI-Key':
+            '348ecc9e9dmshe2d8cc4c38888f3p1aa596jsn563b2f23bd57',
+        },
+      };
+
+      try {
+        const res = await axios.request(options);
+        console.log('data joke', res.data?.body[0]);
+        return res;
+      } catch (err) {
+        return err;
+      }
+    };
+    getAJoke()
+      .then((res) => setJoke(res.data?.body[0]))
+      .catch((err) => console.log(err));
   };
 
   useEffect(() => {
@@ -140,24 +172,18 @@ export default function App() {
     return ((current / initial - 1) * 10).toFixed(2) + '%';
   };
 
+  const createButton = (
+    <Button onClick={openCreateModal} variant="primary">
+      Create
+    </Button>
+  );
+
   const generateHabitrows = () => {
     const rowHTML = [];
-    let isButtonExist = false;
-    const buttonNoExist = () => {
-      isButtonExist = true;
-      return (
-        <td>
-          <Button onClick={openCreateModal} variant="primary">
-            Create
-          </Button>
-        </td>
-      );
-    };
-    const buttonExist = () => <td></td>;
     Object.values(habits).map((habit) => {
       rowHTML.push(
         <tr key={habit.id}>
-          {!isButtonExist ? buttonNoExist() : buttonExist()}
+          <td></td>
           <td>{habit.treemoji}</td>
           <td>{habit.habit}</td>
           <td>{calculateScore(habit.scale, habit.initialScale)}</td>
@@ -193,7 +219,14 @@ export default function App() {
 
   return (
     <>
-      <div className="title">Habitat</div>
+      <div className="title">
+        <span className="gameFont">Habitat</span>
+        <span>
+          Joke of the day:
+          <div>{joke?.setup}</div>
+          <div>... {joke?.punchline}.</div>
+        </span>
+      </div>
       <CreateModal
         show={createModalShow}
         handleClose={closeCreateModal}
@@ -202,8 +235,8 @@ export default function App() {
       <div className="habitsContainer">
         <Table striped bordered hover variant="dark">
           <thead>
-            <tr>
-              <th>Create</th>
+            <tr className={'headers'}>
+              <th>{createButton}</th>
               <th>Icon</th>
               <th>Habit</th>
               <th>Growth</th>

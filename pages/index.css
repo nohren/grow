@@ -95,8 +95,15 @@ body {
 .title {
   position: absolute;
   z-index: 1;
-  left: 40%;
+  left: 3%;
+  width: 90vw;
   top: 2%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.gameFont {
   color: hotpink;
   font-family: 'Press Start 2P', cursive;
   font-size: 60px;
@@ -116,4 +123,8 @@ body {
 
   .habitsContainer .table {
   }
+}
+
+.headers th {
+  vertical-align: middle;
 }
