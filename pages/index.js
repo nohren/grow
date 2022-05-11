@@ -81,29 +81,33 @@ export default function App() {
       .catch((err) => console.log(err));
   };
 
-  const getAndSetJoke = () => {
-    const getAJoke = async () => {
-      const options = {
-        method: 'GET',
-        url: 'https://dad-jokes.p.rapidapi.com/random/joke',
-        headers: {
-          'X-RapidAPI-Host': 'dad-jokes.p.rapidapi.com',
-          'X-RapidAPI-Key':
-            '348ecc9e9dmshe2d8cc4c38888f3p1aa596jsn563b2f23bd57',
-        },
-      };
-
-      try {
-        const res = await axios.request(options);
-        console.log('data joke', res.data?.body[0]);
-        return res;
-      } catch (err) {
-        return err;
-      }
+  const getAndSetJoke = async () => {
+    const optionsJokes = {
+      method: 'GET',
+      url: 'https://dad-jokes.p.rapidapi.com/random/joke',
+      headers: {
+        'X-RapidAPI-Host': 'dad-jokes.p.rapidapi.com',
+        'X-RapidAPI-Key': '348ecc9e9dmshe2d8cc4c38888f3p1aa596jsn563b2f23bd57',
+      },
     };
-    getAJoke()
-      .then((res) => setJoke(res.data?.body[0]))
-      .catch((err) => console.log(err));
+
+    const optionsChuckNorris = {
+      method: 'GET',
+      url: 'https://matchilling-chuck-norris-jokes-v1.p.rapidapi.com/jokes/random',
+      headers: {
+        accept: 'application/json',
+        'X-RapidAPI-Host': 'matchilling-chuck-norris-jokes-v1.p.rapidapi.com',
+        'X-RapidAPI-Key': '348ecc9e9dmshe2d8cc4c38888f3p1aa596jsn563b2f23bd57',
+      },
+    };
+
+    try {
+      const res = await axios.request(optionsJokes);
+      setJoke(res.data?.body[0]);
+    } catch (err) {
+      const res = await axios.request(optionsChuckNorris);
+      setJoke(res.data);
+    }
   };
 
   useEffect(() => {
@@ -223,8 +227,8 @@ export default function App() {
         <span className="gameFont">Habitat</span>
         <span>
           Joke of the day:
-          <div>{joke?.setup}</div>
-          <div>... {joke?.punchline}.</div>
+          <div>{joke?.setup ?? joke?.value}</div>
+          <div>{joke?.punchline && `...${joke?.punchline}.`}</div>
         </span>
       </div>
       <CreateModal
