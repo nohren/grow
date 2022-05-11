@@ -223,13 +223,13 @@ export default function App() {
 
   return (
     <>
+      <span className="positionJoke">
+        Joke of the day:
+        <div>{joke?.setup ?? joke?.value}</div>
+        <div>{joke?.punchline && `...${joke?.punchline}.`}</div>
+      </span>
       <div className="title">
         <span className="gameFont">Habitat</span>
-        <span>
-          Joke of the day:
-          <div>{joke?.setup ?? joke?.value}</div>
-          <div>{joke?.punchline && `...${joke?.punchline}.`}</div>
-        </span>
       </div>
       <CreateModal
         show={createModalShow}
