@@ -1,5 +1,5 @@
 import axios from 'axios';
-const API_KEY = process.env.RAPID_API;
+
 /**
  * First try is to the jokes API.  If fails Chuck Norris api.
  *
@@ -11,7 +11,7 @@ export default async (req, res) => {
     url: 'https://dad-jokes.p.rapidapi.com/random/joke',
     headers: {
       'X-RapidAPI-Host': 'dad-jokes.p.rapidapi.com',
-      'X-RapidAPI-Key': API_KEY,
+      'X-RapidAPI-Key': process.env.RAPID_API,
     },
   };
 
@@ -21,7 +21,7 @@ export default async (req, res) => {
     headers: {
       accept: 'application/json',
       'X-RapidAPI-Host': 'matchilling-chuck-norris-jokes-v1.p.rapidapi.com',
-      'X-RapidAPI-Key': API_KEY,
+      'X-RapidAPI-Key': process.env.RAPID_API,
     },
   };
 
