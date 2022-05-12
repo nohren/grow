@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 /**
- * First try is to the jokes API.  If fails Chuck Norris api.
+ * First try is random.  If fails Chuck Norris api.
  *
  */
 
@@ -25,9 +25,15 @@ export default async (req, res) => {
     },
   };
 
+  const getRandomOption = () => {
+    const options = [optionsJokes, optionsChuckNorris];
+    return options[Math.floor(Math.random() * options.length)];
+  };
+
   try {
-    const response = await axios.request(optionsJokes);
-    res.send(response.data?.body[0]);
+    const randomOption = getRandomOption();
+    const response = await axios.request(randomOption);
+    res.send(response.data?.body[0] ?? response.data);
   } catch (err) {
     const response = await axios.request(optionsChuckNorris);
     res.send(response.data);
