@@ -82,31 +82,16 @@ export default function App() {
   };
 
   const getAndSetJoke = async () => {
-    const optionsJokes = {
+    const options = {
       method: 'GET',
-      url: 'https://dad-jokes.p.rapidapi.com/random/joke',
-      headers: {
-        'X-RapidAPI-Host': 'dad-jokes.p.rapidapi.com',
-        'X-RapidAPI-Key': '348ecc9e9dmshe2d8cc4c38888f3p1aa596jsn563b2f23bd57',
-      },
-    };
-
-    const optionsChuckNorris = {
-      method: 'GET',
-      url: 'https://matchilling-chuck-norris-jokes-v1.p.rapidapi.com/jokes/random',
-      headers: {
-        accept: 'application/json',
-        'X-RapidAPI-Host': 'matchilling-chuck-norris-jokes-v1.p.rapidapi.com',
-        'X-RapidAPI-Key': '348ecc9e9dmshe2d8cc4c38888f3p1aa596jsn563b2f23bd57',
-      },
+      url: '/api/jokes',
     };
 
     try {
-      const res = await axios.request(optionsJokes);
-      setJoke(res.data?.body[0]);
-    } catch (err) {
-      const res = await axios.request(optionsChuckNorris);
+      const res = await axios.request(options);
       setJoke(res.data);
+    } catch (err) {
+      console.log(err);
     }
   };
 
