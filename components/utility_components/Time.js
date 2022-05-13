@@ -8,12 +8,7 @@ import { getHabits, updateHabit } from '../../helpers/ajax';
   For continuously running machines such as those in kiosk mode, this will be the relied upon method of shrinking habits.
 */
 
-export const timeKeeper = (
-  compoundFactor,
-  habits,
-  getHabitsAndSet,
-  getAndSetJoke
-) => {
+export const timeKeeper = (compoundFactor, habits, getHabitsAndSet) => {
   //create a date at midnight tomrrow to check against
   //const timeToReference = createFutureDate();
   let armed = true;
@@ -29,7 +24,6 @@ export const timeKeeper = (
         shrinkTrees(trees, compoundFactor);
         uncheckHabits(habits.current, getHabitsAndSet);
         armed = false;
-        getAndSetJoke();
       }
       //timeToReference = createFutureDate(timeToReference);
     } else {

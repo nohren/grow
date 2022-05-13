@@ -62,11 +62,15 @@ export default function App() {
     const intervalTimer = timeKeeper(
       compoundFactor,
       habitsRef,
-      getHabitsAndSet,
-      getAndSetJoke
+      getHabitsAndSet
     );
+    //new joke every 30 min
+    const jokeTimer = setInterval(() => getAndSetJoke(), 1000 * 60 * 30);
 
-    return () => clearInterval(intervalTimer);
+    return () => {
+      clearInterval(intervalTimer);
+      clearInterval(jokeTimer);
+    };
   }, []);
 
   const getHabitsAndSet = async () => {
