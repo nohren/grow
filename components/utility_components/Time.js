@@ -1,5 +1,5 @@
-import { shrinkTrees } from '../../helpers/dateFunctions';
-import { getHabits, updateHabit } from '../../helpers/ajax';
+import { shrinkTrees } from '../../utils/dateFunctions';
+import { getHabits, updateHabit } from '../../utils/ajax';
 
 /*
   Function adds a recurring event loop timer to the window object. Checks once per minute, 60 times per hour and 1440 times per day for midnight.

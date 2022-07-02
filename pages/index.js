@@ -9,10 +9,17 @@ import HabitModal from '../components/HabitModal.jsx';
 import CreateModal from '../components/create-modal.jsx';
 import { timeKeeper } from '../components/utility_components/Time';
 import Tree from '../components/Tree.jsx';
-import { getHabits, updateHabit } from '../helpers/ajax';
-import { shrinkTrees } from '../helpers/dateFunctions';
+import { getHabits, updateHabit } from '../utils/ajax';
+import { shrinkTrees } from '../utils/dateFunctions';
 extend({ OrbitControls });
 import axios from 'axios';
+import { calculateScore, isNil, setXpos, setZpos } from '../utils/utils';
+
+/**
+ * TODO
+ * Add eslinting, right now no errors show.  Even when we remove function definitions.  It's a problem.
+ *
+ */
 
 export default function App() {
   //When mutating state - dirtying state, the DOM will not do anything, react will appear as if its not working until you call setState. You will get weird console.logs that do not reflect in react. Always always create a fresh copy of state before mutating and setting.  This is good practice.
@@ -24,7 +31,7 @@ export default function App() {
   const [modalHabitKey, setModalHabitKey] = useState('default');
   const [createModalShow, setCreateModalShow] = useState(false);
   const [spacing, setSpacing] = useState(1);
-  const [compoundFactor, setGrowthFactor] = useState(10 * (1 / 100)); //10% for dev, make 1% later
+  const compoundFactor = 1 * (1 / 100); //10% for dev, make 1% later
   const [habitDefault, setHabitDefault] = useState({
     default: {
       id: '',
@@ -41,7 +48,8 @@ export default function App() {
       dateLastCompleted: new Date(),
     },
   });
-
+  console.log(habits);
+  console.log(joke);
   //refs - state that does not automatically trigger a re-render.  An array of references to input DOM nodes, so we can enable and disable them
   const inputs = useRef([]);
   const clickedID = useRef('');
@@ -146,32 +154,16 @@ export default function App() {
     }
   };
 
-  //modulo and division is better thoguht of as how do we get from bottom number to top number using multiples of bottom number.  i.e 6/4 = 1.5 or one 4 + 2
-  // 6%4 = 2 or 4*1 + 2.
-  // 2/4 = 0.5 or 2%4 = 2 or 4 * 0 + 2
-  //commonality is multiple of 4,i.e 4 is remainder 0 so +, 5 is remainder 1 so +, 6 remainder 2 -, 7 remainder 3 -
-  //i % 4, 0 && 1 +, 2 && 3 -
-  //how do we know to double the factor, this is acheived by math.ceiling, if i is a factor of 4, then increment i to use
-  const setXpos = (i, factor = 1) => {
-    factor *= Math.ceil((i % 4 === 0 ? i + 1 : i) / 4);
-    return i % 4 === 0 || i % 4 === 1 ? factor : -1 * factor;
-  };
-  const setZpos = (i, factor = 1) => {
-    factor *= Math.ceil((i % 4 === 0 ? i + 1 : i) / 4);
-    return i % 4 === 1 || i % 4 === 2 ? factor : -1 * factor;
-  };
-
-  const calculateScore = (current, initial) => {
-    return ((current / initial - 1) * 10).toFixed(2) + '%';
-  };
-
   const createButton = (
     <Button onClick={openCreateModal} variant="primary">
       Create
     </Button>
   );
 
-  const generateHabitrows = () => {
+  const generateHabitrows = (habits) => {
+    if (isNil(habits)) {
+      return null;
+    }
     const rowHTML = [];
     Object.values(habits).map((habit) => {
       rowHTML.push(
@@ -213,7 +205,7 @@ export default function App() {
   return (
     <>
       <span className="positionJoke">
-        Joke of the day:
+        Daily jokes:
         <div>{joke?.setup ?? joke?.value}</div>
         <div>{joke?.punchline && `...${joke?.punchline}.`}</div>
       </span>
@@ -237,7 +229,7 @@ export default function App() {
               <th>Edit</th>
             </tr>
           </thead>
-          <tbody>{generateHabitrows()}</tbody>
+          <tbody>{generateHabitrows(habits)}</tbody>
         </Table>
       </div>
       <div className="spacing-container">

@@ -1,7 +1,7 @@
-import { createHabit } from '../helpers/ajax';
+import { createHabit } from '../utils/ajax';
 import { useState } from 'react';
 import { Modal, Container, Row, Col, Button } from 'react-bootstrap';
-import { deepCopy } from '../helpers/deepCopy';
+import { deepCopy } from '../utils/deepCopy';
 
 const CreateModal = ({ show, handleClose, addHabit }) => {
   const [habit, setHabit] = useState({

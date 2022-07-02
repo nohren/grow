@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Modal, Container, Row, Col, Button } from 'react-bootstrap';
-import { updateHabit, deleteHabit } from '../helpers/ajax';
-import { deepCopy } from '../helpers/deepCopy';
+import { updateHabit, deleteHabit } from '../utils/ajax';
+import { deepCopy } from '../utils/deepCopy';
 
 const HabitModal = ({ show, onHide, readrender, modalhabit }) => {
   //this modal pops up when we click on an existing habit. It exists for users to update information.
