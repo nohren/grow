@@ -1,4 +1,4 @@
-import { createHabit } from '../utils/ajax';
+import { createHabit } from '../utils/network';
 import { useState } from 'react';
 import { Modal, Container, Row, Col, Button } from 'react-bootstrap';
 import { deepCopy } from '../utils/deepCopy';

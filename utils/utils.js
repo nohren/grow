@@ -44,5 +44,5 @@ export const setZpos = (i, factor = 1) => {
  * @returns boolean
  */
 export const isNil = (value) => {
-  return value === undefined || value === null || value === NaN;
+  return value === undefined || value === null || Number.isNaN(value);
 };

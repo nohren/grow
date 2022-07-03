@@ -9,7 +9,7 @@ import HabitModal from '../components/HabitModal.jsx';
 import CreateModal from '../components/create-modal.jsx';
 import { timeKeeper } from '../components/utility_components/Time';
 import Tree from '../components/Tree.jsx';
-import { getHabits, updateHabit } from '../utils/ajax';
+import { getHabits, updateHabit } from '../utils/network';
 import { shrinkTrees } from '../utils/dateFunctions';
 extend({ OrbitControls });
 import axios from 'axios';

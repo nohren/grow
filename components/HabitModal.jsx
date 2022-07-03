@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
+import { React, useEffect, useRef, useState } from 'react';
 import { Modal, Container, Row, Col, Button } from 'react-bootstrap';
-import { updateHabit, deleteHabit } from '../utils/ajax';
+import { updateHabit, deleteHabit } from '../utils/network';
 import { deepCopy } from '../utils/deepCopy';
 
 const HabitModal = ({ show, onHide, readrender, modalhabit }) => {

@@ -8,7 +8,7 @@ import Dec from './gltf_tree_instances/Dec';
 import FallingLeaves from './gltf_tree_instances/FallingLeaves';
 import Bush from './gltf_tree_instances/Bush';
 import Cactus from './gltf_tree_instances/Cactus';
-import { updateHabit } from '../utils/ajax';
+import { updateHabit } from '../utils/network';
 import { deepCopy } from '../utils/deepCopy';
 
 export default function Tree({
