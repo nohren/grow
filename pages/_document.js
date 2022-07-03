@@ -12,10 +12,6 @@ class MyDocument extends Document {
             href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap"
             rel="stylesheet"
           />
-          <meta
-            name="viewport"
-            content="width=device-width, initial-scale=0.67, user-scalable=0"
-          />
         </Head>
         <body>
           <Main />
