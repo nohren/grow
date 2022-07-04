@@ -7,25 +7,22 @@ import { isNil } from '../utils/utils';
 import ToggleDays from './ToggleDays';
 
 /**
- *
  * @prop {boolean} open
  * @prop {(event) => void} close
  * @prop {(newData) => void} writeData
  * @prop {Data} data
+ * @prop {string} Action - "edit" or "create"
  * @returns
  */
 const HabitModal = (props) => {
-  const { open, close, updateView, data } = props;
+  const { open, close, updateView, data, action } = props;
   const [habit, setHabit] = Habit();
 
   useEffect(() => {
-    if (open) {
-      let copy = deepCopy(data);
-      setHabit(copy);
-    }
+    setHabit(deepCopy(data));
   }, [open]);
 
-  if (isNil(data)) {
+  if (isNil(habit)) {
     return null;
   }
 
@@ -74,14 +71,14 @@ const HabitModal = (props) => {
     >
       <Modal.Header closeButton>
         <Modal.Title id="contained-modal-title-vcenter">
-          <input name={'habit'} value={habit.habit} onChange={handleChange} />
+          <input name={'habit'} value={habit?.habit} onChange={handleChange} />
         </Modal.Title>
       </Modal.Header>
       <Modal.Body className="show-grid">
         <Container style={{ height: '100%', width: '100%' }}>
           <ToggleDays
             setDays={setDays}
-            value={daysTransformer(habit.frequency)}
+            value={daysTransformer(habit?.frequency)}
           />
         </Container>
       </Modal.Body>
@@ -95,7 +92,7 @@ const HabitModal = (props) => {
           onChange={handleChange}
           name={'description'}
         ></textarea>
-        <div>Repetitions: {habit.reps}</div>
+        <div>Repetitions: {habit?.reps}</div>
         <div>
           Start Date: {habit.startDate?.toDateString()} at{' '}
           {habit.startDate?.toTimeString()}

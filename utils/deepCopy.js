@@ -32,12 +32,15 @@ export const deepCopy = (collection) => {
       return false;
     }
   };
-
-  return JSON.parse(JSON.stringify(collection), (key, value) => {
-    if (isISOString(value)) {
-      return new Date(value);
-    } else {
-      return value;
-    }
-  });
+  try {
+    return JSON.parse(JSON.stringify(collection), (key, value) => {
+      if (isISOString(value)) {
+        return new Date(value);
+      } else {
+        return value;
+      }
+    });
+  } catch (e) {
+    return null;
+  }
 };
