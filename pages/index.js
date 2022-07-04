@@ -1,4 +1,4 @@
-import { Button, Table } from 'react-bootstrap';
+import { Button, Table, Accordion } from 'react-bootstrap';
 import React, { Suspense, useEffect, useRef, useState } from 'react';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { Canvas, extend } from '@react-three/fiber';
@@ -203,33 +203,46 @@ export default function App() {
         addHabit={getHabitsAndSet}
       />
       <div className="habitsContainer">
-        <Table striped bordered hover variant="dark">
-          <thead>
-            <tr className={'headers'}>
-              <th>{createButton}</th>
-              <th>Icon</th>
-              <th>Habit</th>
-              <th>Growth</th>
-              <th>Complete</th>
-              <th>Edit</th>
-            </tr>
-          </thead>
-          <tbody>{generateHabitrows(habits)}</tbody>
-        </Table>
+        <div>
+          <Button
+            name="plus"
+            onClick={handleSpacing}
+            className="spacing-button"
+            variant="light"
+          >
+            Size +
+          </Button>
+          <Button
+            variant="light"
+            name="minus"
+            onClick={handleSpacing}
+            className="spacing-button"
+          >
+            Size -
+          </Button>
+        </div>
+        <Accordion>
+          <Accordion.Item eventKey="0">
+            <Accordion.Header>Habits</Accordion.Header>
+            <Accordion.Body>
+              <Table size="sm" striped bordered hover variant="dark">
+                <thead>
+                  <tr className={'headers'}>
+                    <th>{createButton}</th>
+                    <th>Icon</th>
+                    <th>Habit</th>
+                    <th>Growth</th>
+                    <th>Complete</th>
+                    <th>Edit</th>
+                  </tr>
+                </thead>
+                <tbody>{generateHabitrows(habits)}</tbody>
+              </Table>
+            </Accordion.Body>
+          </Accordion.Item>
+        </Accordion>
       </div>
-      <div className="spacing-container">
-        <Button
-          name="plus"
-          onClick={handleSpacing}
-          className="spacing-button"
-          variant="primary"
-        >
-          Size +
-        </Button>
-        <Button name="minus" onClick={handleSpacing} className="spacing-button">
-          Size -
-        </Button>
-      </div>
+
       <HabitModal
         open={modalShow}
         close={closeModal}

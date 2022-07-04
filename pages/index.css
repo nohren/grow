@@ -97,7 +97,7 @@ body {
   z-index: 1;
   display: flex;
   justify-content: center;
-  width: 90vw;
+  width: 100%;
   top: 2%;
 }
 
