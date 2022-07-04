@@ -147,8 +147,7 @@ export default function Tree({
     }
   };
 
-  // passing the ref for this component instance down to the respective model that gets rendered
-  const Model = forwardRef((props, ref) => {
+  const Model = forwardRef(function modelState(props, ref) {
     switch (props.path) {
       case 'Palm.glb':
         return <Palm ref={ref} {...props} />;

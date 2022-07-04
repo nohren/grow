@@ -1,7 +1,7 @@
 import { Button, Table } from 'react-bootstrap';
-import React, { Suspense, useEffect, useMemo, useRef, useState } from 'react';
+import React, { Suspense, useEffect, useRef, useState } from 'react';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-import { Canvas, useFrame, extend } from '@react-three/fiber';
+import { Canvas, extend } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import SkyComponent from '../components/utility_components/SkyComponent';
 import CameraControls from '../components/utility_components/CameraControls';
@@ -17,61 +17,46 @@ import { calculateScore, isNil, setXpos, setZpos } from '../utils/utils';
 
 /**
  * TODO
- * Add eslinting, right now no errors show.  Even when we remove function definitions.  It's a problem.
- *
+ * Bugfix/
+ *  Checked items are not getting checked off at midnight
+ * Better sizing of table, allow adjustability
+ * Tooltips for habit name and limit name length
+ * enter button for form clicks
+ * clean code
+ * pub sub for multi device push
+ * apple watch app connect
+ * generic habit modal component
  */
 
-export default function App() {
-  //When mutating state - dirtying state, the DOM will not do anything, react will appear as if its not working until you call setState. You will get weird console.logs that do not reflect in react. Always always create a fresh copy of state before mutating and setting.  This is good practice.
+/**
+ * When we grow, as long as we score it as a 1% gain, then we are good.  The premise being, 1% an occurence. or 37x the principle per year if we occur each day.
+ * 1 => 1.01... etc
+ * To account for minimal growth in beginning, we up it by factor of 10
+ */
+export const factor = 10;
+const rate = factor * (1 / 100);
 
-  ////Using events in react.  Values passed into an event invocation must be of type React.MututableRefObject<T>, a ref object, to defeat the stale state problem.  On the listening side function, refs must be used to defeat the stale state problem as well.
+export default function App() {
   const [joke, setJoke] = useState({});
   const [habits, setHabits] = useState({});
   const [modalShow, setModalShow] = useState(false);
   const [modalHabitKey, setModalHabitKey] = useState('default');
   const [createModalShow, setCreateModalShow] = useState(false);
   const [spacing, setSpacing] = useState(1);
-  const compoundFactor = 1 * (1 / 100); //10% for dev, make 1% later
-  const [habitDefault, setHabitDefault] = useState({
-    default: {
-      id: '',
-      habit: '',
-      treemoji: '',
-      path: '',
-      dailyComplete: false,
-      scale: 0.2,
-      rate: 0.001,
-      frequency: {},
-      reps: 0,
-      startDate: new Date(),
-      description: '',
-      dateLastCompleted: new Date(),
-    },
-  });
+
   console.log(habits);
-  console.log(joke);
-  //refs - state that does not automatically trigger a re-render.  An array of references to input DOM nodes, so we can enable and disable them
+
+  //refs - state that does not automatically trigger a re-render.
   const inputs = useRef([]);
-  const clickedID = useRef('');
-  const checkedFlag = useRef(false);
-  const checkBoxClicked = useRef();
   const firstDataRender = useRef(false);
   const habitsRef = useRef({});
 
-  //*** Testing */
-  //console.log('rendering index');
-
-  //takes place after first render **only**
   useEffect(() => {
     //console.log('initial mount'); //after first render and mount
     getHabitsAndSet(); //causes the second render
     getAndSetJoke();
     console.log('Start of browser session: ', new Date());
-    const intervalTimer = timeKeeper(
-      compoundFactor,
-      habitsRef,
-      getHabitsAndSet
-    );
+    const intervalTimer = timeKeeper(rate, habitsRef, getHabitsAndSet);
     //new joke every 30 min
     const jokeTimer = setInterval(() => getAndSetJoke(), 1000 * 60 * 30);
 
@@ -113,7 +98,7 @@ export default function App() {
     const trees = Object.values(habits);
     if (trees.length > 0 && !firstDataRender.current) {
       //takes place after second render **only**, our first look at data
-      shrinkTrees(trees, compoundFactor);
+      shrinkTrees(trees, rate);
       firstDataRender.current = true;
     }
     for (let ref of inputs.current) {
@@ -246,14 +231,10 @@ export default function App() {
         </Button>
       </div>
       <HabitModal
-        show={modalShow}
-        onHide={closeModal}
-        readrender={getHabitsAndSet}
-        modalhabit={
-          habits[modalHabitKey]
-            ? habits[modalHabitKey]
-            : habitDefault['default']
-        }
+        open={modalShow}
+        close={closeModal}
+        updateView={getHabitsAndSet}
+        data={habits?.[modalHabitKey]}
       />
       <Canvas className="canvas-container">
         <CameraControls />
@@ -276,7 +257,7 @@ export default function App() {
                   position={[setXpos(i, spacing), -1, setZpos(i, spacing)]}
                   habit={e}
                   getHabitsAndSet={getHabitsAndSet}
-                  compoundFactor={compoundFactor}
+                  compoundFactor={rate}
                 />
               ))}
         </Suspense>

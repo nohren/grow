@@ -150,7 +150,7 @@ const CreateModal = ({ show, handleClose, addHabit }) => {
         </Modal.Body>
         <div style={{ padding: '3%' }}>
           <textarea
-            style={{ width: '100%' }}
+            style={{ width: '100%', borderRadius: '6px' }}
             placeholder="description..."
             rows="10"
             cols="33"

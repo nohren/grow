@@ -4,6 +4,7 @@ import axios from 'axios';
  * First try is random.  If fails, get Chuck Norris api.
  */
 
+// eslint-disable-next-line import/no-anonymous-default-export
 export default async (req, res) => {
   const options = [
     {

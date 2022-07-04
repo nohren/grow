@@ -1,15 +1,16 @@
+import { factor } from '../pages';
+
 /**
  * Given a current scale and an initial scale, reflects the percentage increase over time given compounding.  Amount of increase generally reflects amount of compounding.  The larger the value the more automatic the response or habit.
- * @param {*} current size.
- * @param {*} initial size
- * @returns
+ * @param {number} current size.
+ * @param {number} initial size
+ * @returns {number} % growth since start
  */
 export const calculateScore = (current, initial) => {
-  return (((current - initial) / current) * 100).toFixed(1) + '%';
-};
+  return ((((current - initial) / initial) * 100) / factor).toFixed(1) + '%';
 
-//not sure what the thoughts behind this was, I never documented it
-// return ((current / initial - 1) * 100).toFixed(2) + '%';
+  // previous code.  save for a bit, no documentation.  return ((current / initial - 1) * 100).toFixed(2) + '%';
+};
 
 //modulo and division is better thoguht of as how do we get from bottom number to top number using multiples of bottom number.  i.e 6/4 = 1.5 or one 4 + 2
 // 6%4 = 2 or 4*1 + 2.
@@ -19,8 +20,8 @@ export const calculateScore = (current, initial) => {
 //how do we know to double the factor, this is acheived by math.ceiling, if i is a factor of 4, then increment i to use
 /**
  *
- * @param {*} i int - array index
- * @param {*} factor int - How spread out the coordinates will be, the smaller the less separation
+ * @param {int} array index
+ * @param {int} factor int - How spread out the coordinates will be, the smaller the less separation
  * @returns
  */
 export const setXpos = (i, factor = 1) => {
