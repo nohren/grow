@@ -1,7 +1,7 @@
-import { Button, Table } from 'react-bootstrap';
-import React, { Suspense, useEffect, useMemo, useRef, useState } from 'react';
+import { Button, Table, Accordion } from 'react-bootstrap';
+import React, { Suspense, useEffect, useRef, useState } from 'react';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-import { Canvas, useFrame, extend } from '@react-three/fiber';
+import { Canvas, extend } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import SkyComponent from '../components/utility_components/SkyComponent';
 import CameraControls from '../components/utility_components/CameraControls';
@@ -9,61 +9,54 @@ import HabitModal from '../components/HabitModal.jsx';
 import CreateModal from '../components/create-modal.jsx';
 import { timeKeeper } from '../components/utility_components/Time';
 import Tree from '../components/Tree.jsx';
-import { getHabits, updateHabit } from '../helpers/ajax';
-import { shrinkTrees } from '../helpers/dateFunctions';
+import { getHabits, updateHabit } from '../utils/network';
+import { shrinkTrees } from '../utils/dateFunctions';
 extend({ OrbitControls });
 import axios from 'axios';
+import { calculateScore, isNil, setXpos, setZpos } from '../utils/utils';
+
+/**
+ * TODO
+ * Bugfix/
+ *  Checked items are not getting checked off at midnight
+ * Better sizing of table, allow adjustability
+ * Tooltips for habit name and limit name length
+ * enter button for form clicks
+ * clean code
+ * pub sub for multi device push
+ * apple watch app connect
+ * generic habit modal component
+ */
+
+/**
+ * When we grow, as long as we score it as a 1% gain, then we are good.  The premise being, 1% an occurence. or 37x the principle per year if we occur each day.
+ * 1 => 1.01... etc
+ * To account for minimal growth in beginning, we up it by factor of 10
+ */
+export const factor = 10;
+const rate = factor * (1 / 100);
 
 export default function App() {
-  //When mutating state - dirtying state, the DOM will not do anything, react will appear as if its not working until you call setState. You will get weird console.logs that do not reflect in react. Always always create a fresh copy of state before mutating and setting.  This is good practice.
-
-  ////Using events in react.  Values passed into an event invocation must be of type React.MututableRefObject<T>, a ref object, to defeat the stale state problem.  On the listening side function, refs must be used to defeat the stale state problem as well.
   const [joke, setJoke] = useState({});
   const [habits, setHabits] = useState({});
   const [modalShow, setModalShow] = useState(false);
   const [modalHabitKey, setModalHabitKey] = useState('default');
   const [createModalShow, setCreateModalShow] = useState(false);
   const [spacing, setSpacing] = useState(1);
-  const [compoundFactor, setGrowthFactor] = useState(10 * (1 / 100)); //10% for dev, make 1% later
-  const [habitDefault, setHabitDefault] = useState({
-    default: {
-      id: '',
-      habit: '',
-      treemoji: '',
-      path: '',
-      dailyComplete: false,
-      scale: 0.2,
-      rate: 0.001,
-      frequency: {},
-      reps: 0,
-      startDate: new Date(),
-      description: '',
-      dateLastCompleted: new Date(),
-    },
-  });
 
-  //refs - state that does not automatically trigger a re-render.  An array of references to input DOM nodes, so we can enable and disable them
+  console.log(habits);
+
+  //refs - state that does not automatically trigger a re-render.
   const inputs = useRef([]);
-  const clickedID = useRef('');
-  const checkedFlag = useRef(false);
-  const checkBoxClicked = useRef();
   const firstDataRender = useRef(false);
   const habitsRef = useRef({});
 
-  //*** Testing */
-  //console.log('rendering index');
-
-  //takes place after first render **only**
   useEffect(() => {
     //console.log('initial mount'); //after first render and mount
     getHabitsAndSet(); //causes the second render
     getAndSetJoke();
     console.log('Start of browser session: ', new Date());
-    const intervalTimer = timeKeeper(
-      compoundFactor,
-      habitsRef,
-      getHabitsAndSet
-    );
+    const intervalTimer = timeKeeper(rate, habitsRef, getHabitsAndSet);
     //new joke every 30 min
     const jokeTimer = setInterval(() => getAndSetJoke(), 1000 * 60 * 30);
 
@@ -105,7 +98,7 @@ export default function App() {
     const trees = Object.values(habits);
     if (trees.length > 0 && !firstDataRender.current) {
       //takes place after second render **only**, our first look at data
-      shrinkTrees(trees, compoundFactor);
+      shrinkTrees(trees, rate);
       firstDataRender.current = true;
     }
     for (let ref of inputs.current) {
@@ -146,32 +139,16 @@ export default function App() {
     }
   };
 
-  //modulo and division is better thoguht of as how do we get from bottom number to top number using multiples of bottom number.  i.e 6/4 = 1.5 or one 4 + 2
-  // 6%4 = 2 or 4*1 + 2.
-  // 2/4 = 0.5 or 2%4 = 2 or 4 * 0 + 2
-  //commonality is multiple of 4,i.e 4 is remainder 0 so +, 5 is remainder 1 so +, 6 remainder 2 -, 7 remainder 3 -
-  //i % 4, 0 && 1 +, 2 && 3 -
-  //how do we know to double the factor, this is acheived by math.ceiling, if i is a factor of 4, then increment i to use
-  const setXpos = (i, factor = 1) => {
-    factor *= Math.ceil((i % 4 === 0 ? i + 1 : i) / 4);
-    return i % 4 === 0 || i % 4 === 1 ? factor : -1 * factor;
-  };
-  const setZpos = (i, factor = 1) => {
-    factor *= Math.ceil((i % 4 === 0 ? i + 1 : i) / 4);
-    return i % 4 === 1 || i % 4 === 2 ? factor : -1 * factor;
-  };
-
-  const calculateScore = (current, initial) => {
-    return ((current / initial - 1) * 10).toFixed(2) + '%';
-  };
-
   const createButton = (
     <Button onClick={openCreateModal} variant="primary">
       Create
     </Button>
   );
 
-  const generateHabitrows = () => {
+  const generateHabitrows = (habits) => {
+    if (isNil(habits)) {
+      return null;
+    }
     const rowHTML = [];
     Object.values(habits).map((habit) => {
       rowHTML.push(
@@ -213,7 +190,7 @@ export default function App() {
   return (
     <>
       <span className="positionJoke">
-        Joke of the day:
+        Daily jokes:
         <div>{joke?.setup ?? joke?.value}</div>
         <div>{joke?.punchline && `...${joke?.punchline}.`}</div>
       </span>
@@ -226,42 +203,51 @@ export default function App() {
         addHabit={getHabitsAndSet}
       />
       <div className="habitsContainer">
-        <Table striped bordered hover variant="dark">
-          <thead>
-            <tr className={'headers'}>
-              <th>{createButton}</th>
-              <th>Icon</th>
-              <th>Habit</th>
-              <th>Growth</th>
-              <th>Complete</th>
-              <th>Edit</th>
-            </tr>
-          </thead>
-          <tbody>{generateHabitrows()}</tbody>
-        </Table>
+        <div>
+          <Button
+            name="plus"
+            onClick={handleSpacing}
+            className="spacing-button"
+            variant="light"
+          >
+            Size +
+          </Button>
+          <Button
+            variant="light"
+            name="minus"
+            onClick={handleSpacing}
+            className="spacing-button"
+          >
+            Size -
+          </Button>
+        </div>
+        <Accordion>
+          <Accordion.Item eventKey="0">
+            <Accordion.Header>Habits</Accordion.Header>
+            <Accordion.Body>
+              <Table size="sm" striped bordered hover variant="dark">
+                <thead>
+                  <tr className={'headers'}>
+                    <th>{createButton}</th>
+                    <th>Icon</th>
+                    <th>Habit</th>
+                    <th>Growth</th>
+                    <th>Complete</th>
+                    <th>Edit</th>
+                  </tr>
+                </thead>
+                <tbody>{generateHabitrows(habits)}</tbody>
+              </Table>
+            </Accordion.Body>
+          </Accordion.Item>
+        </Accordion>
       </div>
-      <div className="spacing-container">
-        <Button
-          name="plus"
-          onClick={handleSpacing}
-          className="spacing-button"
-          variant="primary"
-        >
-          Size +
-        </Button>
-        <Button name="minus" onClick={handleSpacing} className="spacing-button">
-          Size -
-        </Button>
-      </div>
+
       <HabitModal
-        show={modalShow}
-        onHide={closeModal}
-        readrender={getHabitsAndSet}
-        modalhabit={
-          habits[modalHabitKey]
-            ? habits[modalHabitKey]
-            : habitDefault['default']
-        }
+        open={modalShow}
+        close={closeModal}
+        updateView={getHabitsAndSet}
+        data={habits?.[modalHabitKey]}
       />
       <Canvas className="canvas-container">
         <CameraControls />
@@ -284,7 +270,7 @@ export default function App() {
                   position={[setXpos(i, spacing), -1, setZpos(i, spacing)]}
                   habit={e}
                   getHabitsAndSet={getHabitsAndSet}
-                  compoundFactor={compoundFactor}
+                  compoundFactor={rate}
                 />
               ))}
         </Suspense>

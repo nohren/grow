@@ -9,6 +9,7 @@
 import db from '../../db/database';
 import { getHabits } from '../../db/query';
 
+// eslint-disable-next-line import/no-anonymous-default-export
 export default async (req, res) => {
   await db();
   if (req.method === 'GET') {

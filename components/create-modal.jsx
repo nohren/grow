@@ -1,7 +1,7 @@
-import { createHabit } from '../helpers/ajax';
+import { createHabit } from '../utils/network';
 import { useState } from 'react';
 import { Modal, Container, Row, Col, Button } from 'react-bootstrap';
-import { deepCopy } from '../helpers/deepCopy';
+import { deepCopy } from '../utils/deepCopy';
 
 const CreateModal = ({ show, handleClose, addHabit }) => {
   const [habit, setHabit] = useState({
@@ -150,7 +150,7 @@ const CreateModal = ({ show, handleClose, addHabit }) => {
         </Modal.Body>
         <div style={{ padding: '3%' }}>
           <textarea
-            style={{ width: '100%' }}
+            style={{ width: '100%', borderRadius: '6px' }}
             placeholder="description..."
             rows="10"
             cols="33"

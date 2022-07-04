@@ -8,8 +8,8 @@ import Dec from './gltf_tree_instances/Dec';
 import FallingLeaves from './gltf_tree_instances/FallingLeaves';
 import Bush from './gltf_tree_instances/Bush';
 import Cactus from './gltf_tree_instances/Cactus';
-import { updateHabit } from '../helpers/ajax';
-import { deepCopy } from '../helpers/deepCopy';
+import { updateHabit } from '../utils/network';
+import { deepCopy } from '../utils/deepCopy';
 
 export default function Tree({
   getHabitsAndSet,
@@ -147,8 +147,7 @@ export default function Tree({
     }
   };
 
-  // passing the ref for this component instance down to the respective model that gets rendered
-  const Model = forwardRef((props, ref) => {
+  const Model = forwardRef(function modelState(props, ref) {
     switch (props.path) {
       case 'Palm.glb':
         return <Palm ref={ref} {...props} />;
