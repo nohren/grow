@@ -4,7 +4,7 @@ import { useState } from 'react';
  * Declares and defines an instance in memory for a habit
  */
 export const Habit = () => {
-  const [habit, setHabit] = useState({
+  return useState({
     id: '',
     habit: '',
     treemoji: '',
@@ -18,5 +18,4 @@ export const Habit = () => {
     description: '',
     dateLastCompleted: new Date(),
   });
-  return [habit, setHabit];
 };

@@ -1,6 +1,6 @@
 import { React, useEffect } from 'react';
 import { Habit } from './Habit';
-import { Modal, Container, Row, Button } from 'react-bootstrap';
+import { Modal, Container, Button } from 'react-bootstrap';
 import { updateHabit, deleteHabit } from '../utils/network';
 import { deepCopy } from '../utils/deepCopy';
 import { isNil } from '../utils/utils';
@@ -62,7 +62,6 @@ const HabitModal = (props) => {
   const handleDelete = async () => {
     close();
     await deleteHabit(habit.id);
-    console.log('success');
     updateView();
   };
 
