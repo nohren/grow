@@ -40,6 +40,10 @@ body {
   position: absolute;
 }
 
+.verticalLineSpacing {
+  margin: 5px 0 5px 0;
+}
+
 .tdCheckBox {
   position: relative;
 }
@@ -52,12 +56,6 @@ body {
 
 .frequencyBox {
   text-align: center;
-  cursor: pointer;
-}
-
-.frequencyBoxHighlighted {
-  text-align: center;
-  background-color: rgb(29, 144, 211);
   cursor: pointer;
 }
 
@@ -77,11 +75,27 @@ body {
   font-size: 1.5em;
 }
 
+.centerElement {
+  left: 50%;
+  transform: translate(-50%);
+  position: relative;
+}
+
+.centerText {
+  text-align: center;
+  vertical-align: middle;
+}
+
 .spacing-container {
   position: absolute;
   top: 11.7%;
   right: 5%;
   z-index: 1;
+}
+
+.modalText {
+  width: 100%;
+  border-radius: 6px;
 }
 
 .spacing-container .spacing-button {
@@ -131,6 +145,21 @@ body {
   }
 }
 
-.headers th {
+.weekContainer {
+  display: flex;
+  justify-content: center;
+}
+
+.tableWidth {
+  min-width: 50vw;
+}
+
+tr > th {
+  text-align: center;
+  vertical-align: middle;
+}
+
+tr > td {
+  text-align: center;
   vertical-align: middle;
 }

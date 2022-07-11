@@ -76,12 +76,12 @@ const StyledToggle = withStyles({
 })(ToggleButton);
 
 const ToggleDays = (props) => {
-  const { value, setDays } = props;
+  const { value, setDays, size } = props;
 
   return (
     <>
       <StyledToggleButtonGroup
-        size="small"
+        size={size}
         arial-label="Days of the week"
         value={value}
         onChange={(event, value) => setDays(value)}

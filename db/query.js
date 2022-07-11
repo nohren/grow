@@ -1,24 +1,15 @@
 const { Habit, Gfx, GfxIndex } = require('./gardenSchema');
 
 export const insertHabit = async (habit, gfx) => {
-  // console.log(habit);
   try {
-    //mongoose map convert number to string key
+    const { treemoji, path, scale } = gfx;
     const instance = new Habit({
-      habit: habit.habit,
-      treemoji: gfx.treemoji,
-      path: gfx.path,
-      dailyComplete: habit.dailyComplete,
-      scale: gfx.scale,
-      rate: gfx.rate,
-      frequency: habit.frequency,
-      description: habit.description,
-      reps: habit.reps,
-      startDate: habit.startDate,
-      dateLastCompleted: habit.dateLastCompleted,
-      initialScale: gfx.scale,
+      ...habit,
+      treemoji,
+      path,
+      scale,
+      initialScale: scale,
     });
-    //console.log(instance);
     return await instance.save();
   } catch (e) {
     return e;
@@ -36,30 +27,10 @@ export const getGfx = async () => {
 export const getHabits = async () => {
   try {
     const result = await Habit.find();
-    let habits = {};
-    for (let e of result) {
-      let convert = {};
-      for (let key of e.frequency) {
-        convert[key[0]] = Boolean(key[1]);
-      }
-      let currentHabit = {
-        id: e.id,
-        habit: e.habit,
-        treemoji: e.treemoji,
-        path: e.path,
-        dailyComplete: e.dailyComplete,
-        scale: e.scale,
-        rate: e.rate,
-        frequency: convert,
-        description: e.description,
-        reps: e.reps,
-        startDate: e.startDate,
-        dateLastCompleted: e.dateLastCompleted,
-        initialScale: e.initialScale,
-      };
-      habits[e.id] = currentHabit;
-    }
-    return habits;
+    return result.reduce((accumulator, currentValue) => {
+      accumulator[currentValue.id] = currentValue;
+      return accumulator;
+    }, {});
   } catch (e) {
     return e;
   }

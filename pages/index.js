@@ -5,15 +5,25 @@ import { Canvas, extend } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import SkyComponent from '../components/utility_components/SkyComponent';
 import CameraControls from '../components/utility_components/CameraControls';
-import HabitModal from '../components/HabitModal.jsx';
-import CreateModal from '../components/create-modal.jsx';
+import Modal from '../components/Modal';
 import { timeKeeper } from '../components/utility_components/Time';
-import Tree from '../components/Tree.jsx';
+import Tree from '../components/Tree';
 import { getHabits, updateHabit } from '../utils/network';
-import { shrinkTrees } from '../utils/dateFunctions';
+import { decayHabitTrees, isToday } from '../utils/dateFunctions';
 extend({ OrbitControls });
 import axios from 'axios';
 import { calculateScore, isNil, setXpos, setZpos } from '../utils/utils';
+import { Button as MUIbutton } from '@mui/material';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
+
+const theme = createTheme({
+  palette: {
+    success: {
+      main: '#66FF00',
+      contrastText: '#fff',
+    },
+  },
+});
 
 /**
  * TODO
@@ -32,41 +42,46 @@ import { calculateScore, isNil, setXpos, setZpos } from '../utils/utils';
  * When we grow, as long as we score it as a 1% gain, then we are good.  The premise being, 1% an occurence. or 37x the principle per year if we occur each day.
  * 1 => 1.01... etc
  * To account for minimal growth in beginning, we up it by factor of 10
+ *
+ * Decay is represented as 1/7% decay per uncompleted day.  You lose once habit occurence's worth of neurons in one week of inactivity.
+ *
+ * Config below.
  */
 export const factor = 10;
-const rate = factor * (1 / 100);
+const growthRate = factor * (1 / 100);
+const decayRate = factor * ((1 / 7) * (1 / 100));
+//********************************* end config
 
 export default function App() {
   const [joke, setJoke] = useState({});
   const [habits, setHabits] = useState({});
-  const [modalShow, setModalShow] = useState(false);
-  const [modalHabitKey, setModalHabitKey] = useState('default');
-  const [createModalShow, setCreateModalShow] = useState(false);
   const [spacing, setSpacing] = useState(1);
 
   console.log(habits);
 
   //refs - state that does not automatically trigger a re-render.
-  const inputs = useRef([]);
   const firstDataRender = useRef(false);
   const habitsRef = useRef({});
+  const growCallBack = useRef(null);
+  const openModalCallBack = useRef(null);
 
   useEffect(() => {
-    //console.log('initial mount'); //after first render and mount
-    getHabitsAndSet(); //causes the second render
-    getAndSetJoke();
+    //triggered once after first render and mount
+    // below causes the second render, when useEffect is finished running.
+    updateView();
+    //getAndSetJoke();
     console.log('Start of browser session: ', new Date());
-    const intervalTimer = timeKeeper(rate, habitsRef, getHabitsAndSet);
+    //const intervalTimer = timeKeeper(decayRate, habitsRef, getHabitsAndSet);
     //new joke every 30 min
-    const jokeTimer = setInterval(() => getAndSetJoke(), 1000 * 60 * 30);
+    //const jokeTimer = setInterval(() => getAndSetJoke(), 1000 * 60 * 30);
 
     return () => {
-      clearInterval(intervalTimer);
-      clearInterval(jokeTimer);
+      //clearInterval(intervalTimer);
+      //clearInterval(jokeTimer);
     };
   }, []);
 
-  const getHabitsAndSet = async () => {
+  const updateView = async () => {
     const promises = [];
     promises.push(getHabits());
     Promise.all(promises)
@@ -98,38 +113,10 @@ export default function App() {
     const trees = Object.values(habits);
     if (trees.length > 0 && !firstDataRender.current) {
       //takes place after second render **only**, our first look at data
-      shrinkTrees(trees, rate);
+      //decayHabitTrees(trees, decayRate);
       firstDataRender.current = true;
     }
-    for (let ref of inputs.current) {
-      if (habits[ref.name]?.dailyComplete) {
-        ref.checked = habits[ref.name].dailyComplete;
-      }
-    }
   }, [habits]);
-
-  const handleOnCheck = async (e) => {
-    const habit = { ...habits[e.target.name] };
-    habit.dailyComplete = e.target.checked;
-    await updateHabit(habit);
-    getHabitsAndSet();
-  };
-
-  const openModal = (e) => {
-    setModalHabitKey(e.target.title);
-    setModalShow(true);
-    //this also needs to change color of specific tree by id
-  };
-  const closeModal = () => {
-    setModalShow(false);
-  };
-
-  const openCreateModal = () => {
-    setCreateModalShow(true);
-  };
-  const closeCreateModal = () => {
-    setCreateModalShow(false);
-  };
 
   const handleSpacing = (e) => {
     if (e.target.name === 'plus') {
@@ -140,7 +127,10 @@ export default function App() {
   };
 
   const createButton = (
-    <Button onClick={openCreateModal} variant="primary">
+    <Button
+      onClick={() => openModalCallBack.current?.('create')}
+      variant="primary"
+    >
       Create
     </Button>
   );
@@ -155,28 +145,28 @@ export default function App() {
         <tr key={habit.id}>
           <td></td>
           <td>{habit.treemoji}</td>
-          <td>{habit.habit}</td>
+          <td>{habit.name}</td>
           <td>{calculateScore(habit.scale, habit.initialScale)}</td>
-          <td className="tdCheckBox">
-            <input
-              ref={
-                //anonymous function pushing this input DOM node to the ref array for the purpose of disabling the checkbox
-                (input) => {
-                  if (
-                    input !== null &&
-                    inputs.current.length < Object.keys(habits).length
-                  )
-                    inputs.current.push(input);
+          <td>
+            <ThemeProvider theme={theme}>
+              <MUIbutton
+                className="growButton"
+                variant={
+                  isToday(habit.lastCompletedDate) ? 'contained' : 'outlined'
                 }
-              }
-              className="checkbox"
-              type="checkbox"
-              onChange={handleOnCheck}
-              name={habit.id}
-            />
+                color={isToday(habit.lastCompletedDate) ? 'success' : 'primary'}
+                name={habit.id}
+                onClick={() => growCallBack.current?.(habit.id)}
+              >
+                Grow
+              </MUIbutton>
+            </ThemeProvider>
           </td>
           <td>
-            <Button title={habit.id} onClick={openModal} variant="primary">
+            <Button
+              onClick={() => openModalCallBack.current?.('edit', habit.id)}
+              variant="primary"
+            >
               edit
             </Button>
           </td>
@@ -197,11 +187,6 @@ export default function App() {
       <div className="title">
         <span className="gameFont">Habitat</span>
       </div>
-      <CreateModal
-        show={createModalShow}
-        handleClose={closeCreateModal}
-        addHabit={getHabitsAndSet}
-      />
       <div className="habitsContainer">
         <div>
           <Button
@@ -222,12 +207,18 @@ export default function App() {
           </Button>
         </div>
         <Accordion>
-          <Accordion.Item eventKey="0">
+          <Accordion.Item /*eventKey="0"*/>
             <Accordion.Header>Habits</Accordion.Header>
             <Accordion.Body>
-              <Table size="sm" striped bordered hover variant="dark">
+              <Table
+                className="tableWidth"
+                striped
+                bordered
+                hover
+                variant="dark"
+              >
                 <thead>
-                  <tr className={'headers'}>
+                  <tr>
                     <th>{createButton}</th>
                     <th>Icon</th>
                     <th>Habit</th>
@@ -243,11 +234,10 @@ export default function App() {
         </Accordion>
       </div>
 
-      <HabitModal
-        open={modalShow}
-        close={closeModal}
-        updateView={getHabitsAndSet}
-        data={habits?.[modalHabitKey]}
+      <Modal
+        updateView={updateView}
+        data={habits}
+        openModalCallBack={openModalCallBack}
       />
       <Canvas className="canvas-container">
         <CameraControls />
@@ -261,18 +251,17 @@ export default function App() {
           }
         >
           <SkyComponent />
-          {Object.values(habits).length === 0
-            ? null
-            : Object.values(habits).map((e, i) => (
-                <Tree
-                  key={e.id}
-                  scale={[e.scale, e.scale, e.scale]}
-                  position={[setXpos(i, spacing), -1, setZpos(i, spacing)]}
-                  habit={e}
-                  getHabitsAndSet={getHabitsAndSet}
-                  compoundFactor={rate}
-                />
-              ))}
+          {Object.values(habits ?? {}).map((habit, index) => (
+            <Tree
+              key={habit.id}
+              scale={[habit.scale, habit.scale, habit.scale]}
+              position={[setXpos(index, spacing), -1, setZpos(index, spacing)]}
+              habit={habit}
+              updateView={updateView}
+              compoundFactor={growthRate}
+              growCallBack={growCallBack}
+            />
+          ))}
         </Suspense>
       </Canvas>
     </>

@@ -1,7 +1,5 @@
-import React, { useEffect, useRef, useState, forwardRef } from 'react';
-import { useGLTF } from '@react-three/drei';
-import { useLoader, useFrame } from '@react-three/fiber';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+import React, { useEffect, useRef, forwardRef } from 'react';
+import { useFrame } from '@react-three/fiber';
 import Palm from './gltf_tree_instances/Palm';
 import Spruce from './gltf_tree_instances/Spruce';
 import Dec from './gltf_tree_instances/Dec';
@@ -9,20 +7,14 @@ import FallingLeaves from './gltf_tree_instances/FallingLeaves';
 import Bush from './gltf_tree_instances/Bush';
 import Cactus from './gltf_tree_instances/Cactus';
 import { updateHabit } from '../utils/network';
-import { deepCopy } from '../utils/deepCopy';
+import { isNil } from '../utils/utils';
+import { getCurrentTimeStamp } from '../utils/dateFunctions';
 
-export default function Tree({
-  getHabitsAndSet,
-  position,
-  scale,
-  habit,
-  compoundFactor,
-}) {
-  //work around for event listener function.  Only subscribes at app start and function state is captured for reference but turns stale.
-  //in order to have an up to date prop, we need to store the prop and its changing value in a ref where the function scope can capture it.
-  //curious why the initial scope can refer to an updated ref, but not a prop?  I believe its because a prop is a value type and a
-  //ref is an object, so we are copying the reference, ahhh that's why they call it a ref.  We got the address, not the value. which changes.
-  const isMounted = useRef(false);
+const animationRate = 0.001;
+export default function Tree(props) {
+  const { updateView, position, scale, habit, compoundFactor, growCallBack } =
+    props;
+
   const tree = useRef();
   const grow = useRef(false);
   const shrink = useRef(false);
@@ -30,13 +22,14 @@ export default function Tree({
   const shrinkTarget = useRef();
   const passScalePropsFromDOM = useRef(false);
 
+  //REFS: animating directly on the DOM and using listeners.
+  //While we are animating, we don't care to have multiple renders going on.  No useState then.
+
   useEffect(() => {
-    //any state or props accessed from a function attached to a listener, will be stale.  Need to use a ref. This is because the listener belongs ot the initial render.
+    //any state or props accessed from a function attached to a listener, will be stale.  Need to use a ref. This is because the listener belongs only to the initial render.
     window.addEventListener('shrink', handleShrink);
 
-    return () => {
-      window.removeEventListener('shrink', handleShrink);
-    };
+    return () => window.removeEventListener('shrink', handleShrink);
   }, []);
 
   useFrame(() => {
@@ -44,6 +37,9 @@ export default function Tree({
     else if (shrink.current) shrinkInFrames();
   });
 
+  if (isNil(habit.path)) {
+    return null;
+  }
   // an abstract machine that can be in exactly one of a finite number of states at any given time. The FSM can change from one state to another in response to some inputs; the change from one state to another is called a transition. An FSM is defined by a list of its states, its initial state, and the inputs that trigger each transition
 
   //creating my own custom state machine for 2 reasons.
@@ -85,64 +81,54 @@ export default function Tree({
   };
 
   const handleShrink = (event) => {
-    console.log('from shrink event listener: ', event.detail);
+    console.log('from tree component shrink event listener: ', event.detail);
     if (habit.id === event.detail.id) {
       shrinkTarget.current = event.detail.newScale;
       mutateDOMStateMachine('shrink');
     }
   };
 
-  const handleGrowth = () => {
-    growthTarget.current = habit.scale * (1 + compoundFactor);
-    mutateDOMStateMachine('grow');
+  const handleGrowth = (id) => {
+    if (id === habit.id) {
+      growthTarget.current = habit.scale * (1 + compoundFactor);
+      mutateDOMStateMachine('grow');
+    }
   };
 
-  //console.log('rendering: ', habit);
-
-  //once tree is first rendered, we will go into this useEffect and grow the tree if the box is checked
-  //This is undesirable.  Instead we wait until after the first render.  This gives us a change to uncheck the box if it is checked and use it as designed.
-  useEffect(() => {
-    if (habit.dailyComplete && isMounted.current) {
-      handleGrowth();
-    } else {
-      isMounted.current = true;
-    }
-  }, [habit.dailyComplete]);
+  growCallBack.current = handleGrowth;
 
   //always mutate the instance DOM in animation frames, don't use react set state functionality.
   //when finished return promise to signify proccess is complete
   const growInFrames = async () => {
-    tree.current.scale.x += habit.rate;
-    tree.current.scale.y += habit.rate;
-    tree.current.scale.z += habit.rate;
+    tree.current.scale.x += animationRate;
+    tree.current.scale.y += animationRate;
+    tree.current.scale.z += animationRate;
 
     if (tree.current.scale.x >= growthTarget.current) {
       mutateDOMStateMachine('static-pre-db-update');
       await updateHabit({
         ...habit,
         scale: tree.current.scale.x,
-        dateLastCompleted: new Date(),
+        lastCompletedDate: getCurrentTimeStamp(),
         reps: habit.reps + 1,
       });
-      await getHabitsAndSet();
+      await updateView();
       mutateDOMStateMachine('static-post-db-update');
     }
   };
 
   const shrinkInFrames = async () => {
-    tree.current.scale.x -= habit.rate;
-    tree.current.scale.y -= habit.rate;
-    tree.current.scale.z -= habit.rate;
+    tree.current.scale.x -= animationRate;
+    tree.current.scale.y -= animationRate;
+    tree.current.scale.z -= animationRate;
 
     if (tree.current.scale.x <= shrinkTarget.current) {
       mutateDOMStateMachine('static-pre-db-update');
       await updateHabit({
         ...habit,
         scale: tree.current.scale.x,
-        dateLastCompleted: new Date(),
-        dailyComplete: false,
       });
-      await getHabitsAndSet();
+      await updateView();
       mutateDOMStateMachine('static-post-db-update');
     }
   };
