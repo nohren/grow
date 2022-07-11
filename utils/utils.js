@@ -1,7 +1,7 @@
-import { factor } from '../pages';
+import { factor } from '../pages/index';
 
 /**
- * Given a current scale and an initial scale, reflects the percentage increase over time given compounding.  Amount of increase generally reflects amount of compounding.  The larger the value the more automatic the response or habit.
+ * Given a current scale and an initial scale, reflects the percentage increase over time given compounding. The larger the value the more automatic the response or habit, the larger the neuron connection for that habit.
  * @param {number} current size.
  * @param {number} initial size
  * @returns {number} % growth since start
@@ -19,7 +19,6 @@ export const calculateScore = (current, initial) => {
 //i % 4, 0 && 1 +, 2 && 3 -
 //how do we know to double the factor, this is acheived by math.ceiling, if i is a factor of 4, then increment i to use
 /**
- *
  * @param {int} array index
  * @param {int} factor int - How spread out the coordinates will be, the smaller the less separation
  * @returns
@@ -46,4 +45,50 @@ export const setZpos = (i, factor = 1) => {
  */
 export const isNil = (value) => {
   return value === undefined || value === null || Number.isNaN(value);
+};
+
+export const isNilorEmptyString = (value) => {
+  return isNil(value) || value === '';
+};
+
+export const deepCopy = (collection) => {
+  try {
+    return JSON.parse(JSON.stringify(collection));
+  } catch (e) {
+    return null;
+  }
+};
+
+// eslint-disable-next-line no-unused-vars
+const isISOString = (str) => {
+  if (typeof str !== 'string') return false;
+  if (str.length < 24 || str.length > 27) return false;
+
+  let dashCount = 0,
+    colonCount = 0,
+    periodCount = 0,
+    zCount = 0;
+
+  for (let e of str) {
+    if (e === '-') {
+      dashCount++;
+    } else if (e === ':') {
+      colonCount++;
+    } else if (e === '.') {
+      periodCount++;
+    } else if (e === 'Z') {
+      zCount++;
+    }
+  }
+
+  if (
+    dashCount === 2 &&
+    colonCount === 2 &&
+    periodCount === 1 &&
+    zCount === 1
+  ) {
+    return true;
+  } else {
+    return false;
+  }
 };
