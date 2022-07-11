@@ -9,7 +9,7 @@ import Modal from '../components/Modal';
 import { timeKeeper } from '../components/utility_components/Time';
 import Tree from '../components/Tree';
 import { getHabits, updateHabit } from '../utils/network';
-import { decayHabitTrees, isToday } from '../utils/dateFunctions';
+import { decayHabits, isToday } from '../utils/dateFunctions';
 extend({ OrbitControls });
 import axios from 'axios';
 import { calculateScore, isNil, setXpos, setZpos } from '../utils/utils';
@@ -17,6 +17,15 @@ import { Button as MUIbutton } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 
 const theme = createTheme({
+  overrides: {
+    MuiCssBaseline: {
+      '@global': {
+        body: {
+          background: 'linear-gradient(45deg, #fe6b8b 30%, #ff8e53 90%)',
+        },
+      },
+    },
+  },
   palette: {
     success: {
       main: '#66FF00',
@@ -48,8 +57,8 @@ const theme = createTheme({
  * Config below.
  */
 export const factor = 10;
-const growthRate = factor * (1 / 100);
-const decayRate = factor * ((1 / 7) * (1 / 100));
+export const growthRate = factor * (1 / 100);
+export const decayRate = factor * ((1 / 7) * (1 / 100));
 //********************************* end config
 
 export default function App() {
@@ -62,7 +71,7 @@ export default function App() {
   //refs - state that does not automatically trigger a re-render.
   const firstDataRender = useRef(false);
   const habitsRef = useRef({});
-  const growCallBack = useRef(null);
+  const growCallBack = useRef([]);
   const openModalCallBack = useRef(null);
 
   useEffect(() => {
@@ -70,13 +79,15 @@ export default function App() {
     // below causes the second render, when useEffect is finished running.
     updateView();
     //getAndSetJoke();
+
     console.log('Start of browser session: ', new Date());
-    //const intervalTimer = timeKeeper(decayRate, habitsRef, getHabitsAndSet);
-    //new joke every 30 min
+    //why the ref and not from state?
+    const intervalTimer = timeKeeper(habitsRef);
+
     //const jokeTimer = setInterval(() => getAndSetJoke(), 1000 * 60 * 30);
 
     return () => {
-      //clearInterval(intervalTimer);
+      clearInterval(intervalTimer);
       //clearInterval(jokeTimer);
     };
   }, []);
@@ -113,7 +124,7 @@ export default function App() {
     const trees = Object.values(habits);
     if (trees.length > 0 && !firstDataRender.current) {
       //takes place after second render **only**, our first look at data
-      //decayHabitTrees(trees, decayRate);
+      decayHabits(trees, decayRate);
       firstDataRender.current = true;
     }
   }, [habits]);
@@ -156,7 +167,11 @@ export default function App() {
                 }
                 color={isToday(habit.lastCompletedDate) ? 'success' : 'primary'}
                 name={habit.id}
-                onClick={() => growCallBack.current?.(habit.id)}
+                onClick={() => {
+                  growCallBack.current?.map((func) => {
+                    func?.(habit.id);
+                  });
+                }}
               >
                 Grow
               </MUIbutton>
@@ -166,8 +181,9 @@ export default function App() {
             <Button
               onClick={() => openModalCallBack.current?.('edit', habit.id)}
               variant="primary"
+              className={'samSkin'}
             >
-              edit
+              <div style={{ visibility: 'hidden' }}>GROW</div>
             </Button>
           </td>
         </tr>
@@ -258,7 +274,6 @@ export default function App() {
               position={[setXpos(index, spacing), -1, setZpos(index, spacing)]}
               habit={habit}
               updateView={updateView}
-              compoundFactor={growthRate}
               growCallBack={growCallBack}
             />
           ))}

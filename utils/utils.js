@@ -59,6 +59,7 @@ export const deepCopy = (collection) => {
   }
 };
 
+// eslint-disable-next-line no-unused-vars
 const isISOString = (str) => {
   if (typeof str !== 'string') return false;
   if (str.length < 24 || str.length > 27) return false;

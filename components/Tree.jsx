@@ -9,11 +9,11 @@ import Cactus from './gltf_tree_instances/Cactus';
 import { updateHabit } from '../utils/network';
 import { isNil } from '../utils/utils';
 import { getCurrentTimeStamp } from '../utils/dateFunctions';
+import { growthRate, decayRate } from '../pages';
 
 const animationRate = 0.001;
 export default function Tree(props) {
-  const { updateView, position, scale, habit, compoundFactor, growCallBack } =
-    props;
+  const { updateView, position, scale, habit, growCallBack } = props;
 
   const tree = useRef();
   const grow = useRef(false);
@@ -83,19 +83,21 @@ export default function Tree(props) {
   const handleShrink = (event) => {
     console.log('from tree component shrink event listener: ', event.detail);
     if (habit.id === event.detail.id) {
-      shrinkTarget.current = event.detail.newScale;
+      shrinkTarget.current =
+        habit.scale * (1 - decayRate) ** event.detail.daysDecayed;
       mutateDOMStateMachine('shrink');
     }
   };
 
   const handleGrowth = (id) => {
     if (id === habit.id) {
-      growthTarget.current = habit.scale * (1 + compoundFactor);
+      //console.log(id, habit.id);
+      growthTarget.current = habit.scale * (1 + growthRate);
       mutateDOMStateMachine('grow');
     }
   };
 
-  growCallBack.current = handleGrowth;
+  growCallBack.current.push(handleGrowth);
 
   //always mutate the instance DOM in animation frames, don't use react set state functionality.
   //when finished return promise to signify proccess is complete
@@ -127,6 +129,7 @@ export default function Tree(props) {
       await updateHabit({
         ...habit,
         scale: tree.current.scale.x,
+        lastDecayedDate: getCurrentTimeStamp(),
       });
       await updateView();
       mutateDOMStateMachine('static-post-db-update');

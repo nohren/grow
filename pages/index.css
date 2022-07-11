@@ -135,6 +135,16 @@ body {
   overflow: hidden;
 }
 
+.samSkin {
+  background: repeating-linear-gradient(
+    -45deg,
+    #ee4b2b,
+    #ee4b2b 10px,
+    #ffff00 10px,
+    #ffff00 20px
+  );
+}
+
 @media only screen and (max-width: 1024px) {
   .title {
     font-size: 2em;
