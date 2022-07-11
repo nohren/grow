@@ -8,7 +8,7 @@ import CameraControls from '../components/utility_components/CameraControls';
 import Modal from '../components/Modal';
 import { timeKeeper } from '../components/utility_components/Time';
 import Tree from '../components/Tree';
-import { getHabits, updateHabit } from '../utils/network';
+import { getHabits } from '../utils/network';
 import { decayHabits, isToday } from '../utils/dateFunctions';
 extend({ OrbitControls });
 import axios from 'axios';
@@ -17,15 +17,6 @@ import { Button as MUIbutton } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 
 const theme = createTheme({
-  overrides: {
-    MuiCssBaseline: {
-      '@global': {
-        body: {
-          background: 'linear-gradient(45deg, #fe6b8b 30%, #ff8e53 90%)',
-        },
-      },
-    },
-  },
   palette: {
     success: {
       main: '#66FF00',
@@ -78,17 +69,17 @@ export default function App() {
     //triggered once after first render and mount
     // below causes the second render, when useEffect is finished running.
     updateView();
-    //getAndSetJoke();
+    getAndSetJoke();
 
     console.log('Start of browser session: ', new Date());
     //why the ref and not from state?
     const intervalTimer = timeKeeper(habitsRef);
 
-    //const jokeTimer = setInterval(() => getAndSetJoke(), 1000 * 60 * 30);
+    const jokeTimer = setInterval(() => getAndSetJoke(), 1000 * 60 * 30);
 
     return () => {
       clearInterval(intervalTimer);
-      //clearInterval(jokeTimer);
+      clearInterval(jokeTimer);
     };
   }, []);
 
