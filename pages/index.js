@@ -215,7 +215,18 @@ export default function App() {
         </div>
         <Accordion>
           <Accordion.Item /*eventKey="0"*/>
-            <Accordion.Header>Habits</Accordion.Header>
+            <Accordion.Header>
+              <div>
+                <div style={{ margin: '0 0 6px 0' }}>
+                  Habits - Your outcome is a lagging measure of your habit like
+                  a clean house is to a cleaning habit.
+                </div>
+                <div>
+                  Improve 1% each day, 37x per year towards your goal using
+                  habit automation
+                </div>
+              </div>
+            </Accordion.Header>
             <Accordion.Body>
               <Table
                 className="tableWidth"
