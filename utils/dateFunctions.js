@@ -1,5 +1,5 @@
 import date from 'date-and-time';
-import { isNilorEmptyString } from './utils';
+import { isNil, isNilorEmptyString } from './utils';
 
 /**
  *  this function must be run in a useEffect where the window object is accessable.
@@ -34,7 +34,16 @@ const shrink = (habits) => {
     .reduce((accumulator, currentValue) => {
       const { id, lastDecayedDate } = currentValue;
       const daysDecayed = Math.floor(
-        date.subtract(new Date(), new Date(lastDecayedDate)).toDays()
+        date
+          .subtract(
+            new Date(),
+            new Date(
+              !isNil(lastDecayedDate)
+                ? lastDecayedDate
+                : Date.now() - 1000 * 60 * 60 * 24
+            ) //if isNil, return timeStamp for yesterday. Shrink once and add a new decayTimeStamp in that context. For handling the edge case that one may not currently exist.
+          )
+          .toDays()
       );
       accumulator.push({
         id,

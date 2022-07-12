@@ -83,8 +83,10 @@ export default function Tree(props) {
   const handleShrink = (event) => {
     console.log('from tree component shrink event listener: ', event.detail);
     if (habit.id === event.detail.id) {
+      //shrinkTarget range Inf to initialScale inclusive
+      const target = scale * (1 - decayRate) ** event.detail.daysDecayed;
       shrinkTarget.current =
-        habit.scale * (1 - decayRate) ** event.detail.daysDecayed;
+        target > habit.initialScale ? target : habit.initialScale;
       mutateDOMStateMachine('shrink');
     }
   };
