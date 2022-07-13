@@ -115,6 +115,10 @@ body {
   top: 2%;
 }
 
+.verticalSpaceChildren div > div {
+  margin: 0 0 6px 0;
+}
+
 .gameFont {
   color: hotpink;
   font-family: 'Press Start 2P', cursive;

@@ -217,13 +217,15 @@ export default function App() {
           <Accordion.Item /*eventKey="0"*/>
             <Accordion.Header>
               <div>
-                <div style={{ margin: '0 0 6px 0' }}>
-                  Habits - Your outcome is a lagging measure of your habit like
-                  a clean house is to a cleaning habit.
+                <div style={{ marginBottom: '6px' }}>
+                  The effects of small habits compound overtime. You get what
+                  you repeat.
+                  {/* The outcome of your goals are a lagging measure of your
+                  habits. */}
                 </div>
                 <div>
-                  Improve 1% each day, 37x per year towards your goal using
-                  habit automation
+                  Advance 1% on a growing habit each day, 37x per year towards
+                  your goal using habit automation
                 </div>
               </div>
             </Accordion.Header>
@@ -247,6 +249,20 @@ export default function App() {
                 </thead>
                 <tbody>{generateHabitrows(habits)}</tbody>
               </Table>
+              <div>
+                <div>
+                  ...Your net worth is a lagging measure of your financial
+                  habits.
+                </div>
+                <div>
+                  ...Your knowledge is a lagging measure of your learning
+                  habits.
+                </div>
+                <div>
+                  ...Your dental health is a lagging measure of your brushing
+                  and flossing.
+                </div>
+              </div>
             </Accordion.Body>
           </Accordion.Item>
         </Accordion>
