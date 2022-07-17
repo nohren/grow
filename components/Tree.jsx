@@ -10,10 +10,13 @@ import { updateHabit } from '../utils/network';
 import { isNil } from '../utils/utils';
 import { getCurrentTimeStamp } from '../utils/dateFunctions';
 import { growthRate, decayRate } from '../pages';
+import { setXpos, setZpos } from '../utils/utils';
 
 const animationRate = 0.001;
 export default function Tree(props) {
-  const { updateView, position, scale, habit, growCallBack } = props;
+  const { updateView, habit, growCallBack, spacing, index } = props;
+  const scaleArray = [habit.scale, habit.scale, habit.scale];
+  const position = [setXpos(index, spacing), -1, setZpos(index, spacing)];
 
   const tree = useRef();
   const grow = useRef(false);
@@ -84,7 +87,7 @@ export default function Tree(props) {
     console.log('from tree component shrink event listener: ', event.detail);
     if (habit.id === event.detail.id) {
       //shrinkTarget range Inf to initialScale inclusive
-      const target = scale * (1 - decayRate) ** event.detail.daysDecayed;
+      const target = habit.scale * (1 - decayRate) ** event.detail.daysDecayed;
       shrinkTarget.current =
         target > habit.initialScale ? target : habit.initialScale;
       mutateDOMStateMachine('shrink');
@@ -93,7 +96,6 @@ export default function Tree(props) {
 
   const handleGrowth = (id) => {
     if (id === habit.id) {
-      //console.log(id, habit.id);
       growthTarget.current = habit.scale * (1 + growthRate);
       mutateDOMStateMachine('grow');
     }
@@ -112,7 +114,7 @@ export default function Tree(props) {
       mutateDOMStateMachine('static-pre-db-update');
       await updateHabit({
         ...habit,
-        scale: tree.current.scale.x,
+        scale: growthTarget.current,
         lastCompletedDate: getCurrentTimeStamp(),
         reps: habit.reps + 1,
       });
@@ -130,7 +132,7 @@ export default function Tree(props) {
       mutateDOMStateMachine('static-pre-db-update');
       await updateHabit({
         ...habit,
-        scale: tree.current.scale.x,
+        scale: shrinkTarget.current,
         lastDecayedDate: getCurrentTimeStamp(),
       });
       await updateView();
@@ -172,7 +174,7 @@ export default function Tree(props) {
       scale={
         passScalePropsFromDOM.current
           ? [tree.current.scale.x, tree.current.scale.y, tree.current.scale.z]
-          : scale
+          : scaleArray
       }
       position={position}
       onPointerOver={() => console.log(habit.habit)}

@@ -19,10 +19,9 @@ export const updateHabit = async (habit) => {
   }
 };
 
-export const getHabits = async () => {
+export const getHabits = () => {
   try {
-    const res = await axios.get(server + '/habits');
-    return res;
+    return axios.get(server + '/habits');
   } catch (e) {
     return e;
   }

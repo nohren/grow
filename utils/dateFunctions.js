@@ -38,9 +38,7 @@ const shrink = (habits) => {
           .subtract(
             new Date(),
             new Date(
-              !isNil(lastDecayedDate)
-                ? lastDecayedDate
-                : Date.now() - 1000 * 60 * 60 * 24
+              !isNil(lastDecayedDate) ? lastDecayedDate : Date.now() - dayInMs
             ) //if isNil, return timeStamp for yesterday. Shrink once and add a new decayTimeStamp in that context. For handling the edge case that one may not currently exist.
           )
           .toDays()
@@ -65,35 +63,6 @@ export const getCurrentTimeStamp = () => Date.now();
 export const isToday = (timeStamp) =>
   date.isSameDay(new Date(timeStamp), new Date());
 
-//given a date, returns a new date tomorrow, or can customize it with parameters
-const createFutureDate = (
-  date = new Date(),
-  days = 1,
-  hours = 0,
-  minutes = 0,
-  seconds = 0
-) => {
-  const dateCopy = new Date(date.toString());
-  dateCopy.setDate(dateCopy.getDate() + days);
-  dateCopy.setHours(hours);
-  dateCopy.setMinutes(minutes);
-  dateCopy.setSeconds(seconds);
-  return dateCopy;
-};
+export const dayInMs = 1000 * 60 * 60 * 24;
 
-const computeDays = (ms) => {
-  return ms / 1000 / 60 / 60 / 24;
-};
-
-const dateDelinquencyThreshold = (
-  lastComplete,
-  daysToNextComplete = 1,
-  hourOfDay = 23,
-  minuteOfDay = 59
-) => {
-  let threshold = new Date(lastComplete.toString());
-  threshold.setDate(threshold.getDate() + daysToNextComplete);
-  threshold.setHours(hourOfDay);
-  threshold.setMinutes(minuteOfDay);
-  return threshold;
-};
+export const weekInMs = 1000 * 60 * 60 * 24 * 7;

@@ -86,6 +86,11 @@ body {
   vertical-align: middle;
 }
 
+.lineSpacing {
+  margin-bottom: 2em;
+  font-size: large;
+}
+
 .spacing-container {
   position: absolute;
   top: 11.7%;
@@ -131,6 +136,12 @@ body {
   z-index: 1;
   font-size: 3vh;
   color: white;
+}
+
+.infoIcon {
+  width: 4.5%;
+  vertical-align: inherit;
+  margin-left: 4px;
 }
 
 .habitsContainer .table {
