@@ -12,9 +12,12 @@ import { getHabits } from '../utils/network';
 import { decayHabits, isToday } from '../utils/dateFunctions';
 extend({ OrbitControls });
 import axios from 'axios';
-import { calculateScore, isNil, setXpos, setZpos } from '../utils/utils';
+import { calculateScore, isNil } from '../utils/utils';
 import { Button as MUIbutton } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
+import InfoIcon from '../components/icons/InfoIcon';
+import Tooltip from '../components/Tooltip';
+import { TestButtons } from '../testing/test';
 
 const theme = createTheme({
   palette: {
@@ -49,7 +52,7 @@ const theme = createTheme({
  */
 export const factor = 10;
 export const growthRate = factor * (1 / 100);
-export const decayRate = factor * ((1 / 7) * (1 / 100));
+export const decayRate = factor * ((2 / 7) * (1 / 100)); // 2/7th of a percent
 //********************************* end config
 
 export default function App() {
@@ -83,14 +86,11 @@ export default function App() {
     };
   }, []);
 
-  const updateView = async () => {
-    const promises = [];
-    promises.push(getHabits());
-    Promise.all(promises)
+  const updateView = () => {
+    getHabits()
       .then((res) => {
-        console.log('data from db pull', res[0].data);
-
-        setHabits(res[0].data);
+        console.log('data from db pull', res.data);
+        setHabits(res.data);
       })
       .catch((err) => console.log(err));
   };
@@ -184,8 +184,22 @@ export default function App() {
     return rowHTML;
   };
 
+  const TooltipTitleFormatter = (props) => {
+    const { value, addClassName } = props;
+    return (
+      <>
+        {value.map((text, idx) => (
+          <div className={addClassName} key={idx}>
+            {text}
+          </div>
+        ))}
+      </>
+    );
+  };
+
   return (
     <>
+      {/* <TestButtons habits={habits} /> */}
       <span className="positionJoke">
         Daily jokes:
         <div>{joke?.setup ?? joke?.value}</div>
@@ -217,16 +231,28 @@ export default function App() {
           <Accordion.Item /*eventKey="0"*/>
             <Accordion.Header>
               <div>
-                <div style={{ marginBottom: '6px' }}>
-                  The effects of small habits compound overtime. You get what
-                  you repeat.
-                  {/* The outcome of your goals are a lagging measure of your
-                  habits. */}
-                </div>
-                <div>
-                  Advance 1% on a growing habit each day, 37x per year towards
-                  your goal using habit automation
-                </div>
+                Advance 1% each day, 37x each year towards your goal using
+                habits.
+              </div>
+              <div>
+                <Tooltip
+                  arrow
+                  title={
+                    <TooltipTitleFormatter
+                      addClassName="lineSpacing"
+                      value={[
+                        'The outcome of your goals are a lagging measure of your habits.',
+                        '...Your net worth is a lagging measure of your financial habits.',
+                        '...Your knowledge is a lagging measure of your learning habits.',
+                        '...Your dental health is a lagging measure of your brushing and flossing.',
+                      ]}
+                    />
+                  }
+                >
+                  <span>
+                    <InfoIcon addClassName="infoIcon" />
+                  </span>
+                </Tooltip>
               </div>
             </Accordion.Header>
             <Accordion.Body>
@@ -249,20 +275,6 @@ export default function App() {
                 </thead>
                 <tbody>{generateHabitrows(habits)}</tbody>
               </Table>
-              <div>
-                <div>
-                  ...Your net worth is a lagging measure of your financial
-                  habits.
-                </div>
-                <div>
-                  ...Your knowledge is a lagging measure of your learning
-                  habits.
-                </div>
-                <div>
-                  ...Your dental health is a lagging measure of your brushing
-                  and flossing.
-                </div>
-              </div>
             </Accordion.Body>
           </Accordion.Item>
         </Accordion>
@@ -288,8 +300,8 @@ export default function App() {
           {Object.values(habits ?? {}).map((habit, index) => (
             <Tree
               key={habit.id}
-              scale={[habit.scale, habit.scale, habit.scale]}
-              position={[setXpos(index, spacing), -1, setZpos(index, spacing)]}
+              spacing={spacing}
+              index={index}
               habit={habit}
               updateView={updateView}
               growCallBack={growCallBack}
