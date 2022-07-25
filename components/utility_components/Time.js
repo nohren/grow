@@ -1,10 +1,10 @@
 import { decayHabits } from '../../utils/dateFunctions';
 
 /**
- * Function adds a recurring event loop timer to the window object. Checks once every 60 seconds for midnight.
-   At midnight, all trees are checked for completion and neuron decay process starts otherwise.  That is if the browser is open then.  Otherwise it is taken care of on browser load.  
+ * function polls every 60 seconds for midnight.
+   At midnight, all trees are checked for completion and neuron decay process starts otherwise.  That is if the browser is open then.  Otherwise it is taken care of on next browser load or midnight, whichever comes first..  
  */
-export const timeKeeper = (habits) => {
+export const timePolling = (habits) => {
   let armed = true;
   return setInterval(() => {
     const now = new Date();
@@ -12,7 +12,7 @@ export const timeKeeper = (habits) => {
 
     if (now.getHours() === 0) {
       if (armed) {
-        decayHabits(Object.values(habits.current));
+        decayHabits(habits);
         armed = false;
       }
     } else {

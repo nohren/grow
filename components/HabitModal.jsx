@@ -29,7 +29,7 @@ const HabitModal = (props) => {
     reps,
     description,
     startDate,
-    lastCompletedDate,
+    lastCompleted,
   } = habit ?? {};
 
   useEffect(() => {
@@ -63,7 +63,7 @@ const HabitModal = (props) => {
     await createHabit({
       ...habit,
       startDate: getCurrentTimeStamp(),
-      lastDecayedDate: getCurrentTimeStamp(),
+      lastDecayed: getCurrentTimeStamp(),
     });
     updateView();
     close();
@@ -107,7 +107,7 @@ const HabitModal = (props) => {
           Start Date: {stringToDateFormatter(startDate)}
         </div>
         <div className="verticalLineSpacing">
-          Last Complete: {stringToDateFormatter(lastCompletedDate)}
+          Last Complete: {stringToDateFormatter(lastCompleted)}
         </div>
         <div className="verticalLineSpacing">Repetitions: {reps}</div>
       </div>
