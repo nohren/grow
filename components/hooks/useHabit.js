@@ -18,7 +18,7 @@ export const useHabit = () => {
     description: '',
     repsGoal: repsGoal,
     startDate: null,
-    lastCompletedDate: null,
-    lastDecayedDate: null,
+    lastCompleted: null,
+    lastDecayed: null,
   });
 };

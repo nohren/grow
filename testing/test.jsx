@@ -10,7 +10,7 @@ const RewindDecayDatesDay = async (habits, updateView) => {
   const container = Object.values(habits).map((habit) => {
     const copy = { ...habit };
     const yesterday = Date.now() - dayInMs;
-    copy.lastDecayedDate = yesterday;
+    copy.lastDecayed = yesterday;
     return copy;
   });
   try {
@@ -25,7 +25,7 @@ const RewindDecayDatesWeek = async (habits, updateView) => {
   const container = Object.values(habits).map((habit) => {
     const copy = { ...habit };
     const lastWeek = Date.now() - weekInMs;
-    copy.lastDecayedDate = lastWeek;
+    copy.lastDecayed = lastWeek;
     return copy;
   });
   try {

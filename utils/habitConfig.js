@@ -15,10 +15,13 @@ const habitConfig = {
   decayFactor: 2 / 7, // 2 reps gone every 7 days without new reps
   repsGoal: 31,
   getX: function (y) {
-    return 2 ** y - this.repUnits;
+    return 2 ** y - 1;
   },
+  /**
+   * base 2 logarithm. x moved right once to allow a 0,0 origin
+   */
   getY: function (x) {
-    return Math.log2(x + this.repUnits);
+    return Math.log2(x + 1);
   },
   growX: function (x) {
     return x + this.repUnits;

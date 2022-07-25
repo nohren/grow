@@ -6,7 +6,7 @@ import { Html } from '@react-three/drei';
 import SkyComponent from '../components/utility_components/SkyComponent';
 import CameraControls from '../components/utility_components/CameraControls';
 import Modal from '../components/Modal';
-import { timeKeeper } from '../components/utility_components/Time';
+import { timePolling } from '../components/utility_components/Time';
 import Tree from '../components/Tree';
 import { getHabits } from '../utils/network';
 import { decayHabits, isToday } from '../utils/dateFunctions';
@@ -47,14 +47,13 @@ const theme = createTheme({
 
 export default function App() {
   const [joke, setJoke] = useState({});
-  const [habits, setHabits] = useState({});
+  const [habits, setHabits] = useState(null);
   const [spacing, setSpacing] = useState(1);
 
   console.log(habits);
 
   //refs - state that does not automatically trigger a re-render.
   const firstDataRender = useRef(false);
-  const habitsRef = useRef({});
   const growCallBack = useRef([]);
   const openModalCallBack = useRef(null);
 
@@ -66,7 +65,7 @@ export default function App() {
 
     console.log('Start of browser session: ', new Date());
     //why the ref and not from state?
-    const intervalTimer = timeKeeper(habitsRef);
+    const intervalTimer = timePolling(habits);
 
     const jokeTimer = setInterval(() => getAndSetJoke(), 1000 * 60 * 30);
 
@@ -99,13 +98,11 @@ export default function App() {
     }
   };
 
+  //runs once we have data from API, and only once
+  //checking for decay on browser load
   useEffect(() => {
-    //effect triggers after each change of habits state
-    habitsRef.current = habits;
-    const trees = Object.values(habits);
-    if (trees.length > 0 && !firstDataRender.current) {
-      //takes place after second render **only**, our first look at data
-      decayHabits(trees);
+    if (!isNil(habits) && !firstDataRender.current) {
+      decayHabits(habits);
       firstDataRender.current = true;
     }
   }, [habits]);
@@ -144,9 +141,9 @@ export default function App() {
               <MUIbutton
                 className="growButton"
                 variant={
-                  isToday(habit.lastCompletedDate) ? 'contained' : 'outlined'
+                  isToday(habit.lastCompleted) ? 'contained' : 'outlined'
                 }
-                color={isToday(habit.lastCompletedDate) ? 'success' : 'primary'}
+                color={isToday(habit.lastCompleted) ? 'success' : 'primary'}
                 name={habit.id}
                 onClick={() => {
                   growCallBack.current?.map((func) => {

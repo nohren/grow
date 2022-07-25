@@ -3,9 +3,11 @@ import { isNil, isNilorEmptyString } from './utils';
 
 /**
  *  this function must be run in a useEffect where the window object is accessable.
- * @param {Record<string,any>[]}  Trees
  */
 export const decayHabits = (habits) => {
+  if (isNil(habits)) {
+    return;
+  }
   const shrinkList = shrink(habits);
   console.log('Habits to shrink: ', shrinkList);
 
@@ -24,38 +26,57 @@ export const decayHabits = (habits) => {
 };
 
 /**
- * Takes an object of habits, calculates the days since last decayed.  Takes into consider. If run each day should be 1.
+ * Takes an object of habits, calculates the days since last decayed, and grown.  Takes into consider. If run each day should be 1.
  * Input
  * @param {Habit}
  * @return {Tree[]} - { id, daysDecayed: Number}
  */
 const shrink = (habits) => {
-  return habits
+  return Object.values(habits)
     .reduce((accumulator, currentValue) => {
-      const { id, lastDecayedDate } = currentValue;
-      const daysDecayed = Math.floor(
-        date
-          .subtract(
-            new Date(),
-            new Date(
-              !isNil(lastDecayedDate) ? lastDecayedDate : Date.now() - dayInMs
-            ) //if isNil, return timeStamp for yesterday. Shrink once and add a new decayTimeStamp in that context. For handling the edge case that one may not currently exist.
-          )
-          .toDays()
-      );
+      const { id, lastDecayed, repsSinceDecay } = currentValue;
+      const daysDecayed = decayCount(lastDecayed);
+      const daysGrown = dayCount(repsSinceDecay);
       accumulator.push({
         id,
         daysDecayed,
+        daysGrown,
       });
       return accumulator;
     }, [])
-    .filter((event) => event.daysDecayed > 0);
+    .filter((obj) => obj.daysDecayed > 0);
 };
 export const stringToDateFormatter = (timeStamp) => {
   if (isNilorEmptyString(timeStamp)) {
     return '';
   }
   return date.format(new Date(timeStamp), 'ddd, MMM DD YYYY, h:mm A');
+};
+
+export const monthDayYearFormatter = (timeStamp) => {
+  if (isNilorEmptyString(timeStamp)) {
+    return '';
+  }
+  return date.format(new Date(timeStamp), 'MMM DD YYYY');
+};
+
+const dayCount = (timeStampArray) => {
+  const set = new Set();
+  for (let i = 0, l = timeStampArray.length; i < l; i++) {
+    set.add(monthDayYearFormatter(timeStampArray[i]));
+  }
+  return set.size;
+};
+
+const decayCount = (lastDecayed) => {
+  return Math.floor(
+    date
+      .subtract(
+        new Date(),
+        new Date(!isNil(lastDecayed) ? lastDecayed : Date.now() - dayInMs) //if isNil, return timeStamp for yesterday. Shrink once and add a new decayTimeStamp in that context. For handling the edge case that one may not currently exist.
+      )
+      .toDays()
+  );
 };
 
 export const getCurrentTimeStamp = () => Date.now();
