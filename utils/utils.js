@@ -1,27 +1,9 @@
-import { factor } from '../pages/index';
-
-/**
- * Given a current scale and an initial scale, reflects the percentage increase over time given compounding. The larger the value the more automatic the response or habit, the larger the neuron connection for that habit.
- * @param {number} current size.
- * @param {number} initial size
- * @returns {number} % growth since start
- */
-export const calculateScore = (current, initial) => {
-  return ((((current - initial) / initial) * 100) / factor).toFixed(1) + '%';
-
-  // previous code.  save for a bit, no documentation.  return ((current / initial - 1) * 100).toFixed(2) + '%';
-};
-
-//modulo and division is better thoguht of as how do we get from bottom number to top number using multiples of bottom number.  i.e 6/4 = 1.5 or one 4 + 2
-// 6%4 = 2 or 4*1 + 2.
-// 2/4 = 0.5 or 2%4 = 2 or 4 * 0 + 2
-//commonality is multiple of 4,i.e 4 is remainder 0 so +, 5 is remainder 1 so +, 6 remainder 2 -, 7 remainder 3 -
-//i % 4, 0 && 1 +, 2 && 3 -
-//how do we know to double the factor, this is acheived by math.ceiling, if i is a factor of 4, then increment i to use
 /**
  * @param {int} array index
  * @param {int} factor int - How spread out the coordinates will be, the smaller the less separation
- * @returns
+ * @returns {int} Vector3.x
+ *
+ * Using modulo, or the remainder from multiples of bottom number to get to top, along with 4 graph quadrants to decide position given index number.
  */
 export const setXpos = (i, factor = 1) => {
   factor *= Math.ceil((i % 4 === 0 ? i + 1 : i) / 4);
@@ -29,9 +11,9 @@ export const setXpos = (i, factor = 1) => {
 };
 /**
  *
- * @param {*} i
- * @param {*} factor - How spread out the coordinates will be, the smaller the less separation
- * @returns
+ * @param {int} i
+ * @param {int} factor - How spread out the coordinates will be, the smaller the less separation
+ * @returns {int} Vector3.z
  */
 export const setZpos = (i, factor = 1) => {
   factor *= Math.ceil((i % 4 === 0 ? i + 1 : i) / 4);
@@ -39,17 +21,12 @@ export const setZpos = (i, factor = 1) => {
 };
 
 /**
- * Use for possible undefined, null or NaN values
- * @param {*} value unknown
- * @returns boolean
+ * Javascript is a dynamically typed language.  This is the best utility method for catching inapropriate values.
  */
-export const isNil = (value) => {
-  return value === undefined || value === null || Number.isNaN(value);
-};
+export const isNil = (value) =>
+  value === undefined || value === null || Number.isNaN(value);
 
-export const isNilorEmptyString = (value) => {
-  return isNil(value) || value === '';
-};
+export const isNilorEmptyString = (value) => isNil(value) || value === '';
 
 export const deepCopy = (collection) => {
   try {

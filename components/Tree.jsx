@@ -9,13 +9,17 @@ import Cactus from './gltf_tree_instances/Cactus';
 import { updateHabit } from '../utils/network';
 import { isNil } from '../utils/utils';
 import { getCurrentTimeStamp } from '../utils/dateFunctions';
-import { growthRate, decayRate } from '../pages';
 import { setXpos, setZpos } from '../utils/utils';
-
-const animationRate = 0.001;
+import habitConfig from '../utils/habitConfig';
+const { animationRate, decayFactor } = habitConfig;
 export default function Tree(props) {
   const { updateView, habit, growCallBack, spacing, index } = props;
-  const scaleArray = [habit.scale, habit.scale, habit.scale];
+  const { id, repsAdjusted, path, reps } = habit;
+  const scaleArray = [
+    habitConfig.getY(repsAdjusted),
+    habitConfig.getY(repsAdjusted),
+    habitConfig.getY(repsAdjusted),
+  ];
   const position = [setXpos(index, spacing), -1, setZpos(index, spacing)];
 
   const tree = useRef();
@@ -40,7 +44,7 @@ export default function Tree(props) {
     else if (shrink.current) shrinkInFrames();
   });
 
-  if (isNil(habit.path)) {
+  if (isNil(path)) {
     return null;
   }
   // an abstract machine that can be in exactly one of a finite number of states at any given time. The FSM can change from one state to another in response to some inputs; the change from one state to another is called a transition. An FSM is defined by a list of its states, its initial state, and the inputs that trigger each transition
@@ -85,18 +89,19 @@ export default function Tree(props) {
 
   const handleShrink = (event) => {
     console.log('from tree component shrink event listener: ', event.detail);
-    if (habit.id === event.detail.id) {
+    if (id === event.detail.id) {
       //shrinkTarget range Inf to initialScale inclusive
-      const target = habit.scale * (1 - decayRate) ** event.detail.daysDecayed;
+      const target =
+        habit.scale * (1 - decayFactor) ** event.detail.daysDecayed;
       shrinkTarget.current =
         target > habit.initialScale ? target : habit.initialScale;
       mutateDOMStateMachine('shrink');
     }
   };
 
-  const handleGrowth = (id) => {
-    if (id === habit.id) {
-      growthTarget.current = habit.scale * (1 + growthRate);
+  const handleGrowth = (_id) => {
+    if (_id === id) {
+      growthTarget.current = habitConfig.getY(habitConfig.growX(repsAdjusted));
       mutateDOMStateMachine('grow');
     }
   };
@@ -116,7 +121,8 @@ export default function Tree(props) {
         ...habit,
         scale: growthTarget.current,
         lastCompletedDate: getCurrentTimeStamp(),
-        reps: habit.reps + 1,
+        reps: reps + 1,
+        repsAdjusted: habitConfig.getX(growthTarget.current),
       });
       await updateView();
       mutateDOMStateMachine('static-post-db-update');
@@ -168,8 +174,8 @@ export default function Tree(props) {
   //passing props on each render, if another tree gets checked, props will be passed down, while we are growing we don't want to a accept a stale tree prop from state, so instead we pass in the current ref scale value that is the current value while it is growing.
   return (
     <Model
-      path={habit.path}
-      info={habit}
+      path={path}
+      data={habit}
       ref={tree}
       scale={
         passScalePropsFromDOM.current
@@ -177,7 +183,7 @@ export default function Tree(props) {
           : scaleArray
       }
       position={position}
-      onPointerOver={() => console.log(habit.habit)}
+      // onPointerOver={() => console.log(habit.habit)}
       // onPointerLeave={}
     />
   );

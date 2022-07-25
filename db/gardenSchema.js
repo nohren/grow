@@ -1,21 +1,23 @@
 const mongoose = require('mongoose');
 
 /**
- * unless otherwise noted, habits are represented as trees and are synonymous with them in this app.  The goal with this appis that they will grow unconsciously.
+ * persisted habit data
  */
 const habitSchema = mongoose.Schema({
   name: String, //name of habit
   treemoji: String, //tree emoji image
   path: String, //path of Graphics Library transmission binary file containing 3D data for R3F
-  scale: Number, // The current size of the habit object
-  frequency: [Number], // habit occurence goals per 7 days
+  frequency: [Number], // habit occurence goals per 7 days.  May eventually be used to set calendar reminders.
   description: String, // description of the habit in users own words
-  reps: Number, // habit occurences since creation
+  reps: Number, // habit repetitions
+  repsAdjusted: Number, // repetitions adjusted for time decay, the principle measure of the application.
   startDate: Number, // habit creation timestamp
-  lastCompletedDate: Number, //last habit occurence timestamp
-  lastDecayedDate: Number, // last habit neuron decay timestamp
-  initialScale: Number, // starting scale of habit object, used to calculate compounding growth over time
+  lastCompletedDate: Number, //last habit occurence timestamp, used to show user when it was last done.
+  lastDecayedDate: Number, // last habit decay timestamp, used to derive the amount of decay days in the current decay persisting operation.
+  repsGoal: Number, // repsAdjusted goal for automaticity completion. Used to show progress towards the goal as a % of reps.
+  repsSinceLastDecay: [Number], //a cache of timestamps representing reps since last decayed date.  Cleared during a decay persistence operation. Used to get daysGrown to match against daysDecayed
 });
+//removes _id and adds id.
 habitSchema.set('toJSON', {
   virtuals: true,
   transform: function (doc, ret) {

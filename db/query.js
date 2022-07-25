@@ -2,13 +2,11 @@ const { Habit, Gfx, GfxIndex } = require('./gardenSchema');
 
 export const insertHabit = async (habit, gfx) => {
   try {
-    const { treemoji, path, scale } = gfx;
+    const { treemoji, path } = gfx;
     const instance = new Habit({
       ...habit,
       treemoji,
       path,
-      scale,
-      initialScale: scale,
     });
     return await instance.save();
   } catch (e) {

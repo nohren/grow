@@ -1,5 +1,4 @@
 import { Sky } from '@react-three/drei';
-import { useFrame } from '@react-three/fiber';
 import { React, useRef } from 'react';
 
 export default function SkyComponent() {

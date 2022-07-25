@@ -12,12 +12,13 @@ import { getHabits } from '../utils/network';
 import { decayHabits, isToday } from '../utils/dateFunctions';
 extend({ OrbitControls });
 import axios from 'axios';
-import { calculateScore, isNil } from '../utils/utils';
+import { isNil } from '../utils/utils';
 import { Button as MUIbutton } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import InfoIcon from '../components/icons/InfoIcon';
 import Tooltip from '../components/Tooltip';
-import { TestButtons } from '../testing/test';
+import habitConfig from '../utils/habitConfig';
+//import { TestButtons } from '../testing/test';
 
 const theme = createTheme({
   palette: {
@@ -29,7 +30,10 @@ const theme = createTheme({
 });
 
 /**
+ * See habit config for app premise.
+ *
  * TODO
+ *
  * Bugfix/
  *  Checked items are not getting checked off at midnight
  * Better sizing of table, allow adjustability
@@ -40,20 +44,6 @@ const theme = createTheme({
  * apple watch app connect
  * generic habit modal component
  */
-
-/**
- * When we grow, as long as we score it as a 1% gain, then we are good.  The premise being, 1% an occurence. or 37x the principle per year if we occur each day.
- * 1 => 1.01... etc
- * To account for minimal growth in beginning, we up it by factor of 10
- *
- * Decay is represented as 1/7% decay per uncompleted day.  You lose once habit occurence's worth of neurons in one week of inactivity.
- *
- * Config below.
- */
-export const factor = 10;
-export const growthRate = factor * (1 / 100);
-export const decayRate = factor * ((2 / 7) * (1 / 100)); // 2/7th of a percent
-//********************************* end config
 
 export default function App() {
   const [joke, setJoke] = useState({});
@@ -115,7 +105,7 @@ export default function App() {
     const trees = Object.values(habits);
     if (trees.length > 0 && !firstDataRender.current) {
       //takes place after second render **only**, our first look at data
-      decayHabits(trees, decayRate);
+      decayHabits(trees);
       firstDataRender.current = true;
     }
   }, [habits]);
@@ -148,7 +138,7 @@ export default function App() {
           <td></td>
           <td>{habit.treemoji}</td>
           <td>{habit.name}</td>
-          <td>{calculateScore(habit.scale, habit.initialScale)}</td>
+          <td>{habitConfig.calculateProgress(habit.repsAdjusted)}</td>
           <td>
             <ThemeProvider theme={theme}>
               <MUIbutton
