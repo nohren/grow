@@ -33,7 +33,7 @@ const habitConfig = {
     return x - this.decayFactor * (daysDecayed - daysGrown);
   },
   calculateProgress: function (x) {
-    return ((this.getY(x) / this.repsGoal) * 100).toFixed(2) + '%';
+    return ((this.getY(x) / this.getY(this.repsGoal)) * 100).toFixed(2) + '%';
   },
 };
 

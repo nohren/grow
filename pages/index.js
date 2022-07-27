@@ -17,7 +17,7 @@ import { Button as MUIbutton } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import InfoIcon from '../components/icons/InfoIcon';
 import Tooltip from '../components/Tooltip';
-import habitConfig from '../utils/habitConfig';
+import LogarithmicLine from '../components/charts/LogarithmicLine';
 //import { TestButtons } from '../testing/test';
 
 const theme = createTheme({
@@ -135,7 +135,9 @@ export default function App() {
           <td></td>
           <td>{habit.treemoji}</td>
           <td>{habit.name}</td>
-          <td>{habitConfig.calculateProgress(habit.repsAdjusted)}</td>
+          <td className="chartWidth">
+            <LogarithmicLine {...habit} />
+          </td>
           <td>
             <ThemeProvider theme={theme}>
               <MUIbutton

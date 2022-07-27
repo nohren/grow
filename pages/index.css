@@ -179,6 +179,10 @@ body {
   min-width: 40vw;
 }
 
+.chartWidth {
+  width: 20vw;
+}
+
 tr > th {
   text-align: center;
   vertical-align: middle;

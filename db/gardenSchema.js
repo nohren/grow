@@ -14,7 +14,6 @@ const habitSchema = mongoose.Schema({
   startDate: Number, // habit creation timestamp
   lastCompleted: Number, //last habit occurence timestamp, used to show user when it was last done.
   lastDecayed: Number, // last habit decay timestamp, used to derive the amount of decay days in the current decay persisting operation.
-  repsGoal: Number, // repsAdjusted goal for automaticity completion. Used to show progress towards the goal as a % of reps.
   repsSinceDecay: [Number], //a cache of timestamps representing reps since last decayed date.  Cleared during a decay persistence operation. Used to get daysGrown to match against daysDecayed
 });
 //removes _id and adds id.
