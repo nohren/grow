@@ -20,6 +20,11 @@ export const setZpos = (i, factor = 1) => {
   return i % 4 === 1 || i % 4 === 2 ? factor : -1 * factor;
 };
 
+export const formatNumberToString = (number, decimalPlace = 2) =>
+  number.toFixed(decimalPlace);
+
+export const roundNumber = (number, decimalPlace) =>
+  Math.round(number * decimalPlace) / decimalPlace;
 /**
  * Javascript is a dynamically typed language.  This is the best utility method for catching inapropriate values.
  */
