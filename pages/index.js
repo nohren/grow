@@ -18,7 +18,6 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 import InfoIcon from '../components/icons/InfoIcon';
 import Tooltip from '../components/Tooltip';
 import LogarithmicLine from '../components/charts/LogarithmicLine';
-import habitConfig from '../utils/habitConfig';
 //import { TestButtons } from '../testing/test';
 
 const theme = createTheme({
@@ -136,7 +135,7 @@ export default function App() {
           <td></td>
           <td>{habit.treemoji}</td>
           <td>{habit.name}</td>
-          <td>
+          <td className="chartWidth">
             <LogarithmicLine {...habit} />
           </td>
           <td>

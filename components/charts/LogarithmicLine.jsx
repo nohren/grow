@@ -12,17 +12,16 @@ if (typeof Highcharts === 'object') {
 const { repsGoal, getY } = habitConfig;
 
 /**
- * TODO
- * Size this according to the parent container space
  *
  * An svg is created on mount.  For some reason there is a bunch of space it does not use.  Why is that?
+ * We need to set width in the outside container, it will abide by that.
+ * For some reason it won't abide by height of the outside container, so we need to set it in here.
  *
+ * Enable full screen in legend item click
  *
- *
- * Remove the chart top right icon.  Keep full screen functionality
  */
 const LogarithmicLine = (props) => {
-  const { repsAdjusted } = props ?? {};
+  const { repsAdjusted } = props;
 
   const generateChartData = (_repsAdjusted, _repsGoal, decimal = 1) => {
     const data = [];
@@ -48,11 +47,41 @@ const LogarithmicLine = (props) => {
       return `Adjusted Reps: <b>${formatNumberToString(
         repsAdjusted,
         1
-      )}</b><br/>Automaticity: <b>${formatNumberToString(
-        (getY(repsAdjusted) / getY(repsGoal)) * 100
-      )}%</b><br/>`;
+      )}</b><br/>Automaticity: <b>${habitConfig.calculateProgress(
+        repsAdjusted
+      )}</b><br/>`;
     }
     return false;
+  };
+
+  const percentLabelFormatter = function () {
+    return habitConfig.calculateProgress(repsAdjusted);
+  };
+
+  /**
+   * Now I really have a reason to learn prototypes.
+   * This is not functioning as designed. Fix tomorrow.
+   */
+  const fullScreen = function () {
+    Highcharts.FullScreen = function (container) {
+      this.init(container.parentNode); // main div of the chart
+    };
+
+    Highcharts.FullScreen.prototype = {
+      init: function (container) {
+        if (container.requestFullscreen) {
+          container.requestFullscreen();
+        } else if (container.mozRequestFullScreen) {
+          container.mozRequestFullScreen();
+        } else if (container.webkitRequestFullscreen) {
+          container.webkitRequestFullscreen();
+        } else if (container.msRequestFullscreen) {
+          container.msRequestFullscreen();
+        }
+      },
+    };
+
+    this.chart.fullscreen = new Highcharts.FullScreen(this.chart.container);
   };
 
   const [chartOptions, setChartOptions] = useState({
@@ -62,7 +91,6 @@ const LogarithmicLine = (props) => {
     },
     chart: {
       backgroundColor: '#000000',
-      width: 208,
       height: 50,
       spacingBottom: 0,
       spacingTop: 0,
@@ -77,6 +105,15 @@ const LogarithmicLine = (props) => {
         text: 'Adjusted Reps',
       },
     },
+    exporting: {
+      buttons: {
+        contextButton: {
+          enabled: false,
+          align: 'right',
+          verticalAlign: 'bottom',
+        },
+      },
+    },
     yAxis: {
       visible: false,
       min: 0,
@@ -89,14 +126,22 @@ const LogarithmicLine = (props) => {
     plotOptions: {
       series: {
         color: '#39FF14',
+        events: {
+          legendItemClick: fullScreen,
+        },
       },
     },
     tooltip: {
       formatter: logToolTipFormatter,
     },
     legend: {
-      enabled: false,
-      align: 'center',
+      enabled: true,
+      align: 'right',
+      layout: 'proximate',
+      //   verticalAlign: 'top',
+      borderRadius: 5,
+      backgroundColor: '#b8b4b4',
+      labelFormatter: percentLabelFormatter,
     },
     series: [
       {
@@ -120,6 +165,9 @@ const LogarithmicLine = (props) => {
     setChartOptions({
       tooltip: {
         formatter: logToolTipFormatter,
+      },
+      legend: {
+        labelFormatter: percentLabelFormatter,
       },
       series: [
         {
