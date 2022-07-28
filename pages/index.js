@@ -18,6 +18,8 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 import InfoIcon from '../components/icons/InfoIcon';
 import Tooltip from '../components/Tooltip';
 import LogarithmicLine from '../components/charts/LogarithmicLine';
+import Congrats from '../components/Congrats';
+import habitConfig from '../utils/habitConfig';
 //import { TestButtons } from '../testing/test';
 
 const theme = createTheme({
@@ -28,6 +30,8 @@ const theme = createTheme({
     },
   },
 });
+
+const { repsGoal } = habitConfig;
 
 /**
  * See habit config for app premise.
@@ -186,8 +190,19 @@ export default function App() {
     );
   };
 
+  const isCongrats = (habits, repsGoal) => {
+    const arr = Object.values(habits ?? {});
+    for (const item of arr) {
+      if (item.repsAdjusted > repsGoal) {
+        return true;
+      }
+    }
+    return false;
+  };
+
   return (
     <>
+      {isCongrats(habits, repsGoal) && <Congrats />}
       {/* <TestButtons habits={habits} /> */}
       <span className="positionJoke">
         Daily jokes:

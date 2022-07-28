@@ -1,15 +1,37 @@
 import React, { useState, useEffect } from 'react';
 import Highcharts from 'highcharts';
-import HighchartsExporting from 'highcharts/modules/exporting';
+import Exporting from 'highcharts/modules/exporting';
+import FullScreen from 'highcharts/modules/full-screen';
 import HighchartsReact from 'highcharts-react-official';
 import habitConfig from '../../utils/habitConfig';
 import { formatNumberToString, roundNumber } from '../../utils/utils';
 
 if (typeof Highcharts === 'object') {
-  HighchartsExporting(Highcharts);
+  Exporting(Highcharts);
+  FullScreen(Highcharts);
 }
 
 const { repsGoal, getY } = habitConfig;
+
+//The below method is a reminder that the creators of some library, do things better than you can implement yourself with their stuff.  don't create your own thing.  Just needed to import the FullScreen module.
+
+// class FullScreen {
+//   constructor(container) {
+//     //invokes the void function below to open fullscreen
+//     this.init(container.parentNode);
+//   }
+//   init(container) {
+//     if (container.requestFullscreen) {
+//       container.requestFullscreen();
+//     } else if (container.mozRequestFullScreen) {
+//       container.mozRequestFullScreen();
+//     } else if (container.webkitRequestFullscreen) {
+//       container.webkitRequestFullscreen();
+//     } else if (container.msRequestFullscreen) {
+//       container.msRequestFullscreen();
+//     }
+//   }
+// }
 
 /**
  *
@@ -58,32 +80,6 @@ const LogarithmicLine = (props) => {
     return habitConfig.calculateProgress(repsAdjusted);
   };
 
-  /**
-   * Now I really have a reason to learn prototypes.
-   * This is not functioning as designed. Fix tomorrow.
-   */
-  const fullScreen = function () {
-    Highcharts.FullScreen = function (container) {
-      this.init(container.parentNode); // main div of the chart
-    };
-
-    Highcharts.FullScreen.prototype = {
-      init: function (container) {
-        if (container.requestFullscreen) {
-          container.requestFullscreen();
-        } else if (container.mozRequestFullScreen) {
-          container.mozRequestFullScreen();
-        } else if (container.webkitRequestFullscreen) {
-          container.webkitRequestFullscreen();
-        } else if (container.msRequestFullscreen) {
-          container.msRequestFullscreen();
-        }
-      },
-    };
-
-    this.chart.fullscreen = new Highcharts.FullScreen(this.chart.container);
-  };
-
   const [chartOptions, setChartOptions] = useState({
     title: {
       //text: "Habit Training"
@@ -127,7 +123,11 @@ const LogarithmicLine = (props) => {
       series: {
         color: '#39FF14',
         events: {
-          legendItemClick: fullScreen,
+          legendItemClick() {
+            this.chart.fullscreen.open();
+            //prevent the label from deactivating the graph
+            return false;
+          },
         },
       },
     },
