@@ -6,10 +6,10 @@ import { Html } from '@react-three/drei';
 import SkyComponent from '../components/utility_components/SkyComponent';
 import CameraControls from '../components/utility_components/CameraControls';
 import Modal from '../components/Modal';
-import { timePolling } from '../components/utility_components/Time';
+import { timePoll } from '../utils/dateFunctions';
 import Tree from '../components/Tree';
 import { getHabits } from '../utils/network';
-import { decayHabits, isToday } from '../utils/dateFunctions';
+import { isToday } from '../utils/dateFunctions';
 extend({ OrbitControls });
 import axios from 'axios';
 import { isNil } from '../utils/utils';
@@ -18,8 +18,8 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 import InfoIcon from '../components/icons/InfoIcon';
 import Tooltip from '../components/Tooltip';
 import LogarithmicLine from '../components/charts/LogarithmicLine';
-import Congrats from '../components/Congrats';
-import habitConfig from '../utils/habitConfig';
+//import Congrats from '../components/Congrats';
+//import habitConfig from '../utils/habitConfig';
 //import { TestButtons } from '../testing/test';
 
 const theme = createTheme({
@@ -30,8 +30,6 @@ const theme = createTheme({
     },
   },
 });
-
-const { repsGoal } = habitConfig;
 
 /**
  * See habit config for app premise.
@@ -50,39 +48,42 @@ const { repsGoal } = habitConfig;
  */
 
 export default function App() {
+  //state
+
+  //React State
+  //persists between renders and triggers a view update.
   const [joke, setJoke] = useState({});
   const [habits, setHabits] = useState(null);
   const [spacing, setSpacing] = useState(1);
 
-  console.log(habits);
+  console.log('Habit data from Index.js', habits);
 
-  //refs - state that does not automatically trigger a re-render.
-  const firstDataRender = useRef(false);
+  //React Ref
+  //persists between renders and does not trigger a view update.
   const growCallBack = useRef([]);
   const openModalCallBack = useRef(null);
 
   useEffect(() => {
-    //triggered once after first render and mount
-    // below causes the second render, when useEffect is finished running.
     updateView();
     getAndSetJoke();
-
-    console.log('Start of browser session: ', new Date());
-    //why the ref and not from state?
-    const intervalTimer = timePolling(habits);
-
     const jokeTimer = setInterval(() => getAndSetJoke(), 1000 * 60 * 30);
 
-    return () => {
-      clearInterval(intervalTimer);
-      clearInterval(jokeTimer);
-    };
+    return () => clearInterval(jokeTimer);
   }, []);
+
+  useEffect(() => {
+    //useEffect automatically cleans up the previous effect on component did update.
+
+    const timer = setInterval(() => {
+      timePoll(habits);
+    }, 1000 * 60);
+
+    return () => clearInterval(timer);
+  }, [habits]);
 
   const updateView = () => {
     getHabits()
       .then((res) => {
-        console.log('data from db pull', res.data);
         setHabits(res.data);
       })
       .catch((err) => console.log(err));
@@ -101,15 +102,6 @@ export default function App() {
       console.log(err);
     }
   };
-
-  //runs once we have data from API, and only once
-  //checking for decay on browser load
-  useEffect(() => {
-    if (!isNil(habits) && !firstDataRender.current) {
-      decayHabits(habits);
-      firstDataRender.current = true;
-    }
-  }, [habits]);
 
   const handleSpacing = (e) => {
     if (e.target.name === 'plus') {
@@ -202,7 +194,7 @@ export default function App() {
 
   return (
     <>
-      {isCongrats(habits, repsGoal) && <Congrats />}
+      {/* {isCongrats(habits, repsGoal) && <Congrats />} */}
       {/* <TestButtons habits={habits} /> */}
       <span className="positionJoke">
         Daily jokes:
