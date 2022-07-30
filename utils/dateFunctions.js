@@ -1,6 +1,16 @@
 import date from 'date-and-time';
 import { isNil, isNilorEmptyString } from './utils';
 
+//concerned habits coming in here will be stale, as they are the value of the habits state when we first load the app.
+export const timePoll = (habits) => {
+  //if any value is not today, then update.
+  //happens either on refresh, after 1 minute or after midnight if all caught up.
+  const habitArray = Object.values(habits);
+  console.log('interval running', new Date());
+  if (habitArray.some((habit) => !isToday(habit?.lastDecayed))) {
+    decayHabits(habits);
+  }
+};
 /**
  *  this function must be run in a useEffect where the window object is accessable.
  */
@@ -44,7 +54,7 @@ const shrink = (habits) => {
       });
       return accumulator;
     }, [])
-    .filter((obj) => obj.daysDecayed > 0);
+    .filter((obj) => obj.daysDecayed > 0); //if last decayed is todays date, then we don't trigger an event for that.
 };
 export const stringToDateFormatter = (timeStamp) => {
   if (isNilorEmptyString(timeStamp)) {
@@ -83,6 +93,8 @@ export const getCurrentTimeStamp = () => Date.now();
 
 export const isToday = (timeStamp) =>
   date.isSameDay(new Date(timeStamp), new Date());
+
+export const isHour = (hour) => hour === new Date().getHours();
 
 export const dayInMs = 1000 * 60 * 60 * 24;
 

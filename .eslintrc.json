@@ -8,3 +8,7 @@
     "es6": true
   }
 }
+//ignore files or folders
+// "ignorePatterns": [
+//   "__tests__"
+// ]

@@ -90,8 +90,8 @@ export default function Tree(props) {
   };
 
   const handleShrink = (event) => {
-    console.log('from tree component shrink event listener: ', event.detail);
     if (id === event.detail.id) {
+      console.log('from tree component shrink event listener: ', event.detail);
       const { daysDecayed, daysGrown } = event.detail ?? {};
       const target = habitConfig.getY(
         habitConfig.decayX(repsAdjusted, daysDecayed, daysGrown)
