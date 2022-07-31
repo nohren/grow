@@ -1,13 +1,12 @@
 import date from 'date-and-time';
 import { isNil, isNilorEmptyString } from './utils';
 
-//concerned habits coming in here will be stale, as they are the value of the habits state when we first load the app.
 export const timePoll = (habits) => {
   //if any value is not today, then update.
   //happens either on refresh, after 1 minute or after midnight if all caught up.
-  const habitArray = Object.values(habits);
-  console.log('interval running', new Date());
-  if (habitArray.some((habit) => !isToday(habit?.lastDecayed))) {
+  const habitArray = Object.values(habits ?? {});
+  console.log('Checking time', new Date());
+  if (habitArray.some((habit) => !isToday(habit.lastDecayed))) {
     decayHabits(habits);
   }
 };

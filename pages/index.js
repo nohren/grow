@@ -72,11 +72,12 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    //useEffect automatically cleans up the previous effect on component did update.
-
+    //useEffect automatically cleans up the previous effect on component did update and componentDidmount.
+    //Run on load, on new habit and every 30 minutes.
+    timePoll(habits);
     const timer = setInterval(() => {
       timePoll(habits);
-    }, 1000 * 60);
+    }, 1000 * 60 * 30);
 
     return () => clearInterval(timer);
   }, [habits]);
