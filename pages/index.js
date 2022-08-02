@@ -37,11 +37,6 @@ const theme = createTheme({
  * TODO
  *
  * Bugfix/
- *  Checked items are not getting checked off at midnight
- * Better sizing of table, allow adjustability
- * Tooltips for habit name and limit name length
- * enter button for form clicks
- * clean code
  * pub sub for multi device push
  * apple watch app connect
  * generic habit modal component
@@ -60,7 +55,7 @@ export default function App() {
 
   //React Ref
   //persists between renders and does not trigger a view update.
-  const growCallBack = useRef([]);
+  const growCallBack = useRef({});
   const openModalCallBack = useRef(null);
   const habitRef = useRef(null);
   const onRender = useRef(true);
@@ -151,11 +146,7 @@ export default function App() {
                 }
                 color={isToday(habit.lastCompleted) ? 'success' : 'primary'}
                 name={habit.id}
-                onClick={() => {
-                  growCallBack.current?.map((func) => {
-                    func?.(habit.id);
-                  });
-                }}
+                onClick={growCallBack.current[habit.id]}
               >
                 Grow
               </MUIbutton>
