@@ -1,7 +1,7 @@
 import date from 'date-and-time';
 import { isNil, isNilorEmptyString } from './utils';
 
-export const timePoll = (habitRef) => {
+export const poll = (habitRef) => {
   const habits = habitRef.current;
   const habitArray = Object.values(habits ?? {});
   console.log('Checking time', new Date());
@@ -9,16 +9,14 @@ export const timePoll = (habitRef) => {
     decayHabits(habits);
   }
 };
-/**
- *  this function must be run in a useEffect where the window object is accessable.
- */
+
+//window obj must be accesible in this function
 export const decayHabits = (habits) => {
   if (isNil(habits)) {
     return;
   }
   const shrinkList = shrink(habits);
   console.log('Habits to shrink: ', shrinkList);
-
   shrinkList.map((habit) => {
     //await R3F canvas mount. Due to webGL? need to wait about 500ms longer after "mount".
     //Deduced by moving through the logical assumption that after render, useEffect hook is called thus render should be complete. And by dispatching events manually in the chrome console on load I saw they weren't triggering the listener until a little after mount.  So setTimeout was the next natural step. Utilizing the event loop.
