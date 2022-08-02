@@ -25,7 +25,7 @@ import LogarithmicLine from '../components/charts/LogarithmicLine';
 const theme = createTheme({
   palette: {
     success: {
-      main: '#66FF00',
+      main: '#39FF14',
       contrastText: '#fff',
     },
   },
