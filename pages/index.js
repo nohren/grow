@@ -70,7 +70,10 @@ export default function App() {
     getAndSetJoke();
     const jokeTimer = setInterval(() => getAndSetJoke(), 1000 * 60 * 30);
 
-    const isDecayTimePoll = setInterval(() => timePoll(habitRef), 1000 * 10);
+    const isDecayTimePoll = setInterval(
+      () => timePoll(habitRef),
+      1000 * 60 * 30
+    );
 
     return () => {
       clearInterval(jokeTimer);
