@@ -6,7 +6,7 @@ import { Html } from '@react-three/drei';
 import SkyComponent from '../components/utility_components/SkyComponent';
 import CameraControls from '../components/utility_components/CameraControls';
 import Modal from '../components/Modal';
-import { timePoll } from '../utils/dateFunctions';
+import { poll } from '../utils/dateFunctions';
 import Tree from '../components/Tree';
 import { getHabits } from '../utils/network';
 import { isToday } from '../utils/dateFunctions';
@@ -70,10 +70,7 @@ export default function App() {
     getAndSetJoke();
     const jokeTimer = setInterval(() => getAndSetJoke(), 1000 * 60 * 30);
 
-    const isDecayTimePoll = setInterval(
-      () => timePoll(habitRef),
-      1000 * 60 * 30
-    );
+    const isDecayTimePoll = setInterval(() => poll(habitRef), 1000 * 60 * 30);
 
     return () => {
       clearInterval(jokeTimer);
@@ -85,9 +82,11 @@ export default function App() {
   useEffect(() => {
     habitRef.current = habits;
     if (!isNil(habits) && onRender.current) {
-      timePoll(habitRef);
+      poll(habitRef);
       onRender.current = false;
     }
+    console.log('growcallback ref', growCallBack);
+    console.log('open modal callback ref', openModalCallBack);
   }, [habits]);
 
   const updateView = () => {

@@ -38,7 +38,9 @@ export const updateHabit = async (habit) => {
   const filter = habit.id;
   const update = habit;
   try {
-    return await Habit.findByIdAndUpdate(filter, update);
+    return await Habit.findByIdAndUpdate(filter, update, {
+      new: true,
+    });
   } catch (e) {
     return e;
   }
