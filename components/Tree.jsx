@@ -109,25 +109,21 @@ export default function Tree(props) {
     }
   };
 
-  const handleGrowth = async (_id) => {
-    if (_id === id) {
-      growthTarget.current = habitConfig.getY(habitConfig.growX(repsAdjusted));
-      const now = getCurrentTimeStamp();
-      const shallowCopyRSD = [...repsSinceDecay];
-      shallowCopyRSD.push(now);
-      await updateHabit({
-        ...habit,
-        repsAdjusted: habitConfig.getX(growthTarget.current),
-        lastCompleted: now,
-        repsSinceDecay: shallowCopyRSD,
-        reps: reps + 1,
-      });
-      mutateDOMStateMachine('grow');
-      updateView();
-    }
+  const handleGrowth = async () => {
+    growthTarget.current = habitConfig.getY(habitConfig.growX(repsAdjusted));
+    const now = getCurrentTimeStamp();
+    const shallowCopyRSD = [...repsSinceDecay];
+    shallowCopyRSD.push(now);
+    await updateHabit({
+      ...habit,
+      repsAdjusted: habitConfig.getX(growthTarget.current),
+      lastCompleted: now,
+      repsSinceDecay: shallowCopyRSD,
+      reps: reps + 1,
+    });
+    mutateDOMStateMachine('grow');
+    updateView();
   };
-
-  growCallBack.current[index] = handleGrowth;
 
   //always mutate the instance DOM in animation frames, don't use react set state functionality.
   //when finished return promise to signify proccess is complete
@@ -175,6 +171,9 @@ export default function Tree(props) {
         console.error('no glb model for: ', props.path);
     }
   });
+
+  //passing this function to a parent for use, marking it as the property of this instance using id.
+  growCallBack.current[id] = handleGrowth;
 
   //passing props on each render, if another tree gets checked, props will be passed down, while we are growing we don't want to a accept a stale tree prop from state, so instead we pass in the current ref scale value that is the current value while it is growing.
   return (
