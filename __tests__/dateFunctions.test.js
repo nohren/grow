@@ -26,9 +26,9 @@ test('is correct day count', () => {
   expect(dayCount([Date.now(), Date.now() - 1000 * 60 * 60 * 48])).toBe(2);
   expect(
     dayCount([
-      Date.now(),
-      Date.now() - 1000 * 60 * 60 * 1,
-      Date.now() - 1000 * 60 * 60 * 48,
+      1659424046508 - 1000 * 60 * 60 * 2,
+      1659424046508 - 1000 * 60 * 60 * 1,
+      1659424046508 - 1000 * 60 * 60 * 48,
     ])
   ).toBe(2);
   expect(dayCount([])).toBe(0);

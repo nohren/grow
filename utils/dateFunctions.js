@@ -72,11 +72,11 @@ export const monthDayYearFormatter = (timeStamp) => {
  * @returns Unique day count by timestamp
  */
 export const dayCount = (timeStampArray) => {
-  const set = new Set();
+  const set = {};
   for (let i = 0, l = timeStampArray.length; i < l; i++) {
-    set.add(monthDayYearFormatter(timeStampArray[i]));
+    set[monthDayYearFormatter(timeStampArray[i])] = true;
   }
-  return set.size;
+  return Object.keys(set).length;
 };
 
 export const decayCount = (lastDecayed) => {
