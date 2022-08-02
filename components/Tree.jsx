@@ -109,13 +109,13 @@ export default function Tree(props) {
     }
   };
 
-  const handleGrowth = (_id) => {
+  const handleGrowth = async (_id) => {
     if (_id === id) {
       growthTarget.current = habitConfig.getY(habitConfig.growX(repsAdjusted));
       const now = getCurrentTimeStamp();
       const shallowCopyRSD = [...repsSinceDecay];
       shallowCopyRSD.push(now);
-      updateHabit({
+      await updateHabit({
         ...habit,
         repsAdjusted: habitConfig.getX(growthTarget.current),
         lastCompleted: now,
@@ -131,7 +131,7 @@ export default function Tree(props) {
 
   //always mutate the instance DOM in animation frames, don't use react set state functionality.
   //when finished return promise to signify proccess is complete
-  const growInFrames = async () => {
+  const growInFrames = () => {
     tree.current.scale.x += animationRate;
     tree.current.scale.y += animationRate;
     tree.current.scale.z += animationRate;
@@ -141,7 +141,7 @@ export default function Tree(props) {
     }
   };
 
-  const shrinkInFrames = async () => {
+  const shrinkInFrames = () => {
     tree.current.scale.x -= animationRate;
     tree.current.scale.y -= animationRate;
     tree.current.scale.z -= animationRate;
