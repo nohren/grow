@@ -5,7 +5,7 @@ import { updateHabit, deleteHabit, createHabit } from '../utils/network';
 import { isNil } from '../utils/utils';
 import {
   getCurrentTimeStamp,
-  stringToDateFormatter,
+  dateToStringFormatter,
 } from '../utils/dateFunctions';
 import ToggleDays from './ToggleDays';
 
@@ -104,10 +104,10 @@ const HabitModal = (props) => {
           name={'description'}
         ></textarea>
         <div className="verticalLineSpacing">
-          Start Date: {stringToDateFormatter(startDate)}
+          Start Date: {dateToStringFormatter(startDate)}
         </div>
         <div className="verticalLineSpacing">
-          Last Complete: {stringToDateFormatter(lastCompleted)}
+          Last Complete: {dateToStringFormatter(lastCompleted)}
         </div>
         <div className="verticalLineSpacing">Repetitions: {reps}</div>
       </div>

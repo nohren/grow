@@ -89,7 +89,7 @@ export default function Tree(props) {
     }
   };
 
-  const handleShrink = (event) => {
+  const handleShrink = async (event) => {
     if (id === event.detail.id) {
       console.log('from tree component shrink event listener: ', event.detail);
       const { daysDecayed, daysGrown } = event.detail ?? {};
@@ -97,14 +97,33 @@ export default function Tree(props) {
         habitConfig.decayX(repsAdjusted, daysDecayed, daysGrown)
       );
       shrinkTarget.current = target > 0 ? target : 0;
+      //update
+      await updateHabit({
+        ...habit,
+        repsAdjusted: habitConfig.getX(shrinkTarget.current),
+        lastDecayed: getCurrentTimeStamp(),
+        repsSinceDecay: [],
+      });
       mutateDOMStateMachine('shrink');
+      updateView();
     }
   };
 
-  const handleGrowth = (_id) => {
+  const handleGrowth = async (_id) => {
     if (_id === id) {
       growthTarget.current = habitConfig.getY(habitConfig.growX(repsAdjusted));
+      const now = getCurrentTimeStamp();
+      const shallowCopyRSD = [...repsSinceDecay];
+      shallowCopyRSD.push(now);
+      await updateHabit({
+        ...habit,
+        repsAdjusted: habitConfig.getX(growthTarget.current),
+        lastCompleted: now,
+        repsSinceDecay: shallowCopyRSD,
+        reps: reps + 1,
+      });
       mutateDOMStateMachine('grow');
+      updateView();
     }
   };
 
@@ -118,18 +137,6 @@ export default function Tree(props) {
     tree.current.scale.z += animationRate;
 
     if (tree.current.scale.x >= growthTarget.current) {
-      mutateDOMStateMachine('static-pre-db-update');
-      const now = getCurrentTimeStamp();
-      const shallowCopyRSD = [...repsSinceDecay];
-      shallowCopyRSD.push(now);
-      await updateHabit({
-        ...habit,
-        repsAdjusted: habitConfig.getX(growthTarget.current),
-        lastCompleted: now,
-        repsSinceDecay: shallowCopyRSD,
-        reps: reps + 1,
-      });
-      await updateView();
       mutateDOMStateMachine('static-post-db-update');
     }
   };
@@ -140,14 +147,6 @@ export default function Tree(props) {
     tree.current.scale.z -= animationRate;
 
     if (tree.current.scale.x <= shrinkTarget.current) {
-      mutateDOMStateMachine('static-pre-db-update');
-      await updateHabit({
-        ...habit,
-        repsAdjusted: habitConfig.getX(shrinkTarget.current),
-        lastDecayed: getCurrentTimeStamp(),
-        repsSinceDecay: [],
-      });
-      await updateView();
       mutateDOMStateMachine('static-post-db-update');
     }
   };

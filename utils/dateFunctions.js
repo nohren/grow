@@ -1,9 +1,8 @@
 import date from 'date-and-time';
 import { isNil, isNilorEmptyString } from './utils';
 
-export const timePoll = (habits) => {
-  //if any value is not today, then update.
-  //happens either on refresh, after 1 minute or after midnight if all caught up.
+export const timePoll = (habitRef) => {
+  const habits = habitRef.current;
   const habitArray = Object.values(habits ?? {});
   console.log('Checking time', new Date());
   if (habitArray.some((habit) => !isToday(habit.lastDecayed))) {
@@ -55,7 +54,7 @@ const shrink = (habits) => {
     }, [])
     .filter((obj) => obj.daysDecayed > 0); //if last decayed is todays date, then we don't trigger an event for that.
 };
-export const stringToDateFormatter = (timeStamp) => {
+export const dateToStringFormatter = (timeStamp) => {
   if (isNilorEmptyString(timeStamp)) {
     return '';
   }
