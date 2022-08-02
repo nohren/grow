@@ -56,30 +56,35 @@ export default function App() {
   const [habits, setHabits] = useState(null);
   const [spacing, setSpacing] = useState(1);
 
-  console.log('Habit data from Index.js', habits);
+  console.log(`Habit data from Index.js`, habits);
 
   //React Ref
   //persists between renders and does not trigger a view update.
   const growCallBack = useRef([]);
   const openModalCallBack = useRef(null);
+  const habitRef = useRef(null);
+  const onRender = useRef(true);
 
   useEffect(() => {
     updateView();
     getAndSetJoke();
     const jokeTimer = setInterval(() => getAndSetJoke(), 1000 * 60 * 30);
 
-    return () => clearInterval(jokeTimer);
+    const isDecayTimePoll = setInterval(() => timePoll(habitRef), 1000 * 10);
+
+    return () => {
+      clearInterval(jokeTimer);
+      clearInterval(isDecayTimePoll);
+    };
   }, []);
 
+  //update habit ref.  Run on check on componentDidMount
   useEffect(() => {
-    //useEffect automatically cleans up the previous effect on component did update and componentDidmount.
-    //Run on load, on new habit and every 30 minutes.
-    timePoll(habits);
-    const timer = setInterval(() => {
-      timePoll(habits);
-    }, 1000 * 60 * 30);
-
-    return () => clearInterval(timer);
+    habitRef.current = habits;
+    if (!isNil(habits) && onRender.current) {
+      timePoll(habitRef);
+      onRender.current = false;
+    }
   }, [habits]);
 
   const updateView = () => {
